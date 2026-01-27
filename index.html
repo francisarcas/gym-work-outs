@@ -58,7 +58,22 @@
         h1 { font-size: 26px; margin: 0; }
         h2 { font-size: 18px; margin-bottom: 16px; }
 
-        .header { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap: wrap; gap: 15px;}
+        /* HEADER - Desktop styles */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap; /* Allows items to wrap if space is tight before full column stack */
+            gap: 15px;
+        }
+
+        .header-top-row { /* New wrapper for app-title and nav-tabs */
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex: 1; /* Allows it to take available space on desktop */
+        }
 
         /* --- NAVIGATION TABS --- */
         .nav-tabs {
@@ -66,7 +81,7 @@
             background: rgba(118, 118, 128, 0.12);
             padding: 3px;
             border-radius: 10px;
-            margin-right: auto; /* Push csv button to right */
+            margin-right: auto; /* Push csv button to right on desktop */
         }
 
         .nav-btn {
@@ -129,7 +144,17 @@
             padding: 10px 12px; border-radius: 10px; font-size: 15px; outline: none; width: 100%; box-sizing: border-box;
         }
 
-        #dynamicFields { padding: 16px; background: rgba(128,128,128,0.06); border-radius: 10px; border: 1px dashed var(--border-color); margin-bottom: 16px; }
+        /* Styling for the box around form sections */
+        .form-section-box {
+            padding: 16px;
+            background: rgba(128,128,128,0.06); /* Explicit RGBA, can be var(--input-bg) or similar */
+            border-radius: 10px;
+            border: 1px dashed var(--border-color);
+            margin-bottom: 16px;
+        }
+
+        /* Dynamic Fields - Now uses .form-section-box */
+        #dynamicFields { /* Specific styling for #dynamicFields is now covered by .form-section-box */ }
         .field-group { display: none; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; }
         .field-group.active { display: grid; }
 
@@ -249,19 +274,78 @@
         .views-section.visible { display: block; }
         
         .app-title {
-            font-size: 26px; /* Matches the original h1 font size */
-            font-weight: 700; /* Makes the text bold */
-            margin: 0; /* Removes default div margin */
+            font-size: 26px;
+            font-weight: 700;
+            margin: 0;
             display: flex;
             align-items: center;
-            gap: 8px; /* Adds space between icons and text */
+            gap: 8px;
+            background: linear-gradient(to right, var(--primary), #AF52DE);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent;
+        }
 
-            /* Gradient effect */
-            background: linear-gradient(to right, var(--primary), #AF52DE); /* Blue to Purple gradient */
-            -webkit-background-clip: text; /* Clips the background to the text */
-            -webkit-text-fill-color: transparent; /* Makes the text transparent, showing the background */
-            background-clip: text; /* Standard property for clipping */
-            color: transparent; /* Fallback for browsers that don't support -webkit-text-fill-color */
+        /* --- MOBILE RESPONSIVENESS --- */
+        @media (max-width: 768px) {
+            body {
+                padding: 15px; /* Slightly reduced padding for smaller screens */
+            }
+
+            .header {
+                flex-direction: column; /* Stack header items vertically */
+                align-items: center; /* Center items horizontally */
+                gap: 20px; /* Spacing between stacked header elements */
+            }
+
+            .header-top-row {
+                flex-direction: column; /* Stack app-title and nav-tabs vertically */
+                width: 100%; /* Ensure it takes full width for centering */
+                gap: 15px; /* Space between app-title and nav-tabs */
+                flex: auto; /* Reset flex grow on mobile */
+            }
+
+            .nav-tabs {
+                margin-right: 0; /* Remove auto margin to center tabs */
+                justify-content: center; /* Center the tabs within its container */
+                width: 100%; /* Allow nav-tabs to take full width */
+            }
+
+            .btn-secondary {
+                width: 100%; /* Make export button full width */
+                justify-content: center; /* Center content of the export button */
+            }
+
+            /* For tables that might overflow, min-width on table is often helpful,
+               but overflow-x: auto is already handling it. */
+            table {
+                min-width: unset; /* Remove min-width to allow shrinking if needed, handled by overflow */
+            }
+            th, td {
+                padding: 10px 8px; /* Slightly reduce padding in table cells */
+            }
+
+            .details-content {
+                padding: 10px 10px 10px 20px; /* Adjust padding for details row */
+                grid-template-columns: 1fr; /* Stack detail items vertically on very small screens */
+            }
+            .dashboard-header {
+                flex-direction: column;
+                align-items: flex-start; /* Align dashboard header items to start when stacked */
+                gap: 10px;
+            }
+            .dashboard-header h2, .dashboard-header select {
+                width: 100%; /* Make title and select full width */
+            }
+            .dist-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            .dist-header h2, .dist-header select {
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -270,13 +354,13 @@
 <div class="container">
 
     <div class="header">
-        <div style="display:flex; align-items:center; gap:16px; flex:1;">
+        <div class="header-top-row">
             <div class="app-title">
-            <i class="fa-solid fa-dumbbell"></i>
+                <i class="fa-solid fa-dumbbell"></i>
                 <i class="fa-solid fa-person-running"></i>
-    <i class="fa-solid fa-person-biking"></i>
-    <i class="fa-solid fa-person-swimming"></i>
-</div>
+                <i class="fa-solid fa-person-biking"></i>
+                <i class="fa-solid fa-person-swimming"></i>
+            </div>
 
             <div class="nav-tabs">
                 <button class="nav-btn active" onclick="switchView('tracker')">Tracker</button>
@@ -294,7 +378,8 @@
         <div class="card">
             <h2>Log Activity</h2>
             <form id="workoutForm">
-                <div class="form-grid">
+                <!-- Apply form-section-box to form-grid -->
+                <div class="form-grid form-section-box">
                     <div class="form-group">
                         <label>Date</label>
                         <input type="date" id="date" required>
@@ -321,8 +406,8 @@
                     </div>
                 </div>
 
-                <!-- Dynamic Fields -->
-                <div id="dynamicFields">
+                <!-- Dynamic Fields - also apply form-section-box -->
+                <div id="dynamicFields" class="form-section-box">
                     <div id="fields-running" class="field-group active">
                         <input type="number" step="0.01" placeholder="Distance (km)" data-label="Distance" id="run-dist">
                         <input type="number" step="0.01" placeholder="Pace (min/km)" data-label="Pace" id="run-pace">
@@ -343,141 +428,141 @@
                     
                     <!-- Expanded Weights Section -->
                     <div id="fields-weights" class="field-group">
-                    <select data-label="Exercise">
-                        <option value="">Select Exercise...</option>
-                        
-                        <optgroup label="Lower Body (Push / Squat)">
-                            <option>Back Squat</option>
-                            <option>Front Squat</option>
-                            <option>Goblet Squat</option>
-                            <option>Overhead Squat</option>
-                            <option>Bulgarian Split Squat</option>
-                            <option>Leg Press</option>
-                            <option>Hack Squat</option>
-                            <option>Lunges</option>
-                            <option>Step-ups</option>
-                        </optgroup>
-                        
-                        <optgroup label="Lower Body (Hinge / Posterior)">
-                            <option>Conventional Deadlift</option>
-                            <option>Romanian Deadlift</option>
-                            <option>Sumo Deadlift</option>
-                            <option>Trap Bar Deadlift</option>
-                            <option>Stiff-Legged Deadlift</option>
-                            <option>Good Mornings</option>
-                            <option>Hip Thrust / Glute Bridge</option>
-                            <option>Cable Pull-through</option>
-                        </optgroup>
+                        <select data-label="Exercise">
+                            <option value="">Select Exercise...</option>
+                            
+                            <optgroup label="Lower Body (Push / Squat)">
+                                <option>Back Squat</option>
+                                <option>Front Squat</option>
+                                <option>Goblet Squat</option>
+                                <option>Overhead Squat</option>
+                                <option>Bulgarian Split Squat</option>
+                                <option>Leg Press</option>
+                                <option>Hack Squat</option>
+                                <option>Lunges</option>
+                                <option>Step-ups</option>
+                            </optgroup>
+                            
+                            <optgroup label="Lower Body (Hinge / Posterior)">
+                                <option>Conventional Deadlift</option>
+                                <option>Romanian Deadlift</option>
+                                <option>Sumo Deadlift</option>
+                                <option>Trap Bar Deadlift</option>
+                                <option>Stiff-Legged Deadlift</option>
+                                <option>Good Mornings</option>
+                                <option>Hip Thrust / Glute Bridge</option>
+                                <option>Cable Pull-through</option>
+                            </optgroup>
 
-                        <optgroup label="Upper Body (Push)">
-                            <option>Bench Press</option>
-                            <option>Incline Bench Press</option>
-                            <option>Decline Bench Press</option>
-                            <option>Close-Grip Bench Press</option>
-                            <option>Dumbbell/Cable Fly</option>
-                            <option>Push-ups (Weighted)</option>
-                            <option>Machine Chest Press</option>
-                            <option>Overhead Press</option>
-                            <option>Seated DB Shoulder Press</option>
-                            <option>Arnold Press</option>
-                            <option>Push Press</option>
-                            <option>Lateral Raises</option>
-                        </optgroup>
+                            <optgroup label="Upper Body (Push)">
+                                <option>Bench Press</option>
+                                <option>Incline Bench Press</option>
+                                <option>Decline Bench Press</option>
+                                <option>Close-Grip Bench Press</option>
+                                <option>Dumbbell/Cable Fly</option>
+                                <option>Push-ups (Weighted)</option>
+                                <option>Machine Chest Press</option>
+                                <option>Overhead Press</option>
+                                <option>Seated DB Shoulder Press</option>
+                                <option>Arnold Press</option>
+                                <option>Push Press</option>
+                                <option>Lateral Raises</option>
+                            </optgroup>
 
-                        <optgroup label="Back / Pulling">
-                            <option>Bent-Over Row</option>
-                            <option>Single-Arm DB Row</option>
-                            <option>Pendlay Row</option>
-                            <option>Seated Cable Row</option>
-                            <option>T-Bar Row</option>
-                            <option>Lat Pulldown</option>
-                            <option>Pull-ups / Chin-ups</option>
-                            <option>Face Pulls</option>
-                            <option>Shrugs</option>
-                        </optgroup>
+                            <optgroup label="Back / Pulling">
+                                <option>Bent-Over Row</option>
+                                <option>Single-Arm DB Row</option>
+                                <option>Pendlay Row</option>
+                                <option>Seated Cable Row</option>
+                                <option>T-Bar Row</option>
+                                <option>Lat Pulldown</option>
+                                <option>Pull-ups / Chin-ups</option>
+                                <option>Face Pulls</option>
+                                <option>Shrugs</option>
+                            </optgroup>
 
-                        <optgroup label="Arms">
-                            <option>Bicep Curl</option>
-                            <option>Hammer Curl</option>
-                            <option>Concentration Curl</option>
-                            <option>Cable Curl</option>
-                            <option>Tricep Extension</option>
-                            <option>Tricep Dips</option>
-                            <option>Tricep Pushdowns</option>
-                            <option>Kickbacks</option>
-                        </optgroup>
+                            <optgroup label="Arms">
+                                <option>Bicep Curl</option>
+                                <option>Hammer Curl</option>
+                                <option>Concentration Curl</option>
+                                <option>Cable Curl</option>
+                                <option>Tricep Extension</option>
+                                <option>Tricep Dips</option>
+                                <option>Tricep Pushdowns</option>
+                                <option>Kickbacks</option>
+                            </optgroup>
 
-                        <optgroup label="Core / Abs">
-                            <option>Weighted Plank</option>
-                            <option>Ab Wheel Rollout</option>
-                            <option>Cable Crunch</option>
-                            <option>Hanging Leg Raises</option>
-                            <option>Russian Twists</option>
-                            <option>Dead Bugs</option>
-                        </optgroup>
-                    </select>
-                    <input type="number" placeholder="Sets" data-label="Sets">
-                    <input type="number" placeholder="Reps" data-label="Reps">
-                    <input type="number" step="0.5" placeholder="Weight (kg)" data-label="Weight">
-                </div>
+                            <optgroup label="Core / Abs">
+                                <option>Weighted Plank</option>
+                                <option>Ab Wheel Rollout</option>
+                                <option>Cable Crunch</option>
+                                <option>Hanging Leg Raises</option>
+                                <option>Russian Twists</option>
+                                <option>Dead Bugs</option>
+                            </optgroup>
+                        </select>
+                        <input type="number" placeholder="Sets" data-label="Sets">
+                        <input type="number" placeholder="Reps" data-label="Reps">
+                        <input type="number" step="0.5" placeholder="Weight (kg)" data-label="Weight">
+                    </div>
 
                     <div id="fields-strength" class="field-group">
-    <select data-label="Exercise">
-        <option value="">Select Strength Exercise...</option>
-        
-        <optgroup label="Lower Body – Squat Pattern (Quad Dominant)">
-            <option>Low-Bar Back Squat</option>
-            <option>High-Bar Back Squat</option>
-            <option>Front Squat</option>
-            <option>Paused Back Squat</option>
-            <option>Box Squat</option>
-            <option>Safety Bar Squat (SSB)</option>
-            <option>Tempo Squat</option>
-        </optgroup>
-        
-        <optgroup label="Upper Body – Horizontal Push (Bench Press Pattern)">
-            <option>Competition Bench Press (Paused)</option>
-            <option>Close-Grip Bench Press</option>
-            <option>Paused Bench Press</option>
-            <option>Board Press / Pin Press</option>
-            <option>Floor Press</option>
-            <option>Spoto Press</option>
-        </optgroup>
-        
-        <optgroup label="Lower Body – Hinge Pattern (Deadlift)">
-            <option>Conventional Deadlift</option>
-            <option>Sumo Deadlift</option>
-            <option>Deficit Deadlift</option>
-            <option>Paused Deadlift</option>
-            <option>Rack Pull</option>
-            <option>Block Pull</option>
-            <option>Trap Bar Deadlift</option>
-        </optgroup>
-        
-        <optgroup label="Upper Body – Vertical Push (Overhead Press Pattern)">
-            <option>Strict Standing Overhead Press / Military Press</option>
-            <option>Push Press</option>
-            <option>Seated Overhead Press</option>
-        </optgroup>
-        
-        <optgroup label="Pulling / Back Strength (Assistance for Balance)">
-            <option>Weighted Pull-ups / Chin-ups</option>
-            <option>Barbell Bent-Over Row</option>
-            <option>Pendlay Row</option>
-            <option>Heavy Barbell Shrugs</option>
-        </optgroup>
-        
-        <optgroup label="Core / Grip / Assistance for Strength">
-            <option>Heavy Ab Wheel Rollouts</option>
-            <option>Weighted Planks</option>
-            <option>Farmer's Walks / Heavy Carries</option>
-        </optgroup>
-    </select>
+                        <select data-label="Exercise">
+                            <option value="">Select Strength Exercise...</option>
+                            
+                            <optgroup label="Lower Body – Squat Pattern (Quad Dominant)">
+                                <option>Low-Bar Back Squat</option>
+                                <option>High-Bar Back Squat</option>
+                                <option>Front Squat</option>
+                                <option>Paused Back Squat</option>
+                                <option>Box Squat</option>
+                                <option>Safety Bar Squat (SSB)</option>
+                                <option>Tempo Squat</option>
+                            </optgroup>
+                            
+                            <optgroup label="Upper Body – Horizontal Push (Bench Press Pattern)">
+                                <option>Competition Bench Press (Paused)</option>
+                                <option>Close-Grip Bench Press</option>
+                                <option>Paused Bench Press</option>
+                                <option>Board Press / Pin Press</option>
+                                <option>Floor Press</option>
+                                <option>Spoto Press</option>
+                            </optgroup>
+                            
+                            <optgroup label="Lower Body – Hinge Pattern (Deadlift)">
+                                <option>Conventional Deadlift</option>
+                                <option>Sumo Deadlift</option>
+                                <option>Deficit Deadlift</option>
+                                <option>Paused Deadlift</option>
+                                <option>Rack Pull</option>
+                                <option>Block Pull</option>
+                                <option>Trap Bar Deadlift</option>
+                            </optgroup>
+                            
+                            <optgroup label="Upper Body – Vertical Push (Overhead Press Pattern)">
+                                <option>Strict Standing Overhead Press / Military Press</option>
+                                <option>Push Press</option>
+                                <option>Seated Overhead Press</option>
+                            </optgroup>
+                            
+                            <optgroup label="Pulling / Back Strength (Assistance for Balance)">
+                                <option>Weighted Pull-ups / Chin-ups</option>
+                                <option>Barbell Bent-Over Row</option>
+                                <option>Pendlay Row</option>
+                                <option>Heavy Barbell Shrugs</option>
+                            </optgroup>
+                            
+                            <optgroup label="Core / Grip / Assistance for Strength">
+                                <option>Heavy Ab Wheel Rollouts</option>
+                                <option>Weighted Planks</option>
+                                <option>Farmer's Walks / Heavy Carries</option>
+                            </optgroup>
+                        </select>
 
-    <input type="number" placeholder="Sets" data-label="Sets">
-    <input type="number" placeholder="Reps" data-label="Reps">
-    <input type="number" step="0.5" placeholder="Weight (kg)" data-label="Weight">
-</div>
+                        <input type="number" placeholder="Sets" data-label="Sets">
+                        <input type="number" placeholder="Reps" data-label="Reps">
+                        <input type="number" step="0.5" placeholder="Weight (kg)" data-label="Weight">
+                    </div>
 
                     <div id="fields-core" class="field-group">
                         <input type="text" placeholder="Exercise name" data-label="Exercise">
@@ -1225,12 +1310,24 @@ function renderPrepList() {
     prepSteps.forEach((step, index) => {
         // Stats Calc
         if(step.targetType === 'time') totalTime += step.value;
-        // Simple heuristic for distance if time is given (e.g. 5:30 pace) or just accumulate dist
+        // Simple heuristic for distance if time is given (e.g. 5min/km) or just accumulate dist
+        // For simplicity, I'm assuming a default pace if only time is given for distance estimation
+        // or just accumulate actual distance if targetType is 'dist'.
+        // This part might need more sophisticated logic based on 'prep-type' or 'intensity' for more accurate estimation.
         if(step.targetType === 'dist') {
             totalDist += step.value;
-            // Estimate time? let's assume 5min/km for rough estimate if no pace logic
-            totalTime += (step.value * 5); 
+            // Estimate time based on a generic pace (e.g., 5 min/km for running) if no intensity parsing
+            // For now, let's just make it a simple addition.
+            // If the prep-type is 'Running', and we have 'dist', assume 5 min/km for time calc.
+            // This is a rough estimation.
+            const prepWorkoutType = document.getElementById('prep-type').value;
+            if (prepWorkoutType === 'Running' || prepWorkoutType === 'Cycling' || prepWorkoutType === 'Rowing') {
+                 // Average pace for estimation (e.g., 5 min/km for running, or a different factor for cycling/rowing)
+                 // This is a placeholder; real-world would be more complex.
+                totalTime += step.value * 5; // Assuming 5 minutes per km for distance-based steps
+            }
         }
+
 
         const li = document.createElement('li');
         li.className = `step-item step-${step.phase}`;
@@ -1257,6 +1354,7 @@ function renderPrepList() {
     }
 
     document.getElementById('prep-total-duration').textContent = Math.round(totalTime);
+    // Display total distance with a "defined" label to differentiate from estimated.
     document.getElementById('prep-total-distance').textContent = `${totalDist.toFixed(1)} km (defined)`;
 }
 </script>
