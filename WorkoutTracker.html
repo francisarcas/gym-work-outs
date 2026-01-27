@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Workout Tracker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            color-scheme: light dark;
+            --primary: #007AFF;
+            --danger: #FF3B30;
+            --success: #34C759;
+            --radius: 14px;
+            --bg-color: #f5f5f7;
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --input-bg: rgba(255, 255, 255, 0.95);
+            --border-color: rgba(0, 0, 0, 0.1);
+            --text-main: #1d1d1f;
+            --text-secondary: #6e6e73;
+            --row-hover: rgba(0,0,0,0.03);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #000;
+                --card-bg: rgba(28, 28, 30, 0.9);
+                --input-bg: rgba(44, 44, 46, 0.9);
+                --border-color: rgba(255, 255, 255, 0.15);
+                --text-main: #f5f5f7;
+                --text-secondary: #a1a1a6;
+                --row-hover: rgba(255,255,255,0.05);
+            }
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container { max-width: 900px; margin: 0 auto; }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 24px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+            position: relative;
+        }
+
+        h1 { font-size: 26px; margin: 0; }
+        h2 { font-size: 18px; margin-bottom: 16px; }
+
+        .header { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap: wrap; gap: 15px;}
+
+        /* --- NAVIGATION TABS --- */
+        .nav-tabs {
+            display: inline-flex;
+            background: rgba(118, 118, 128, 0.12);
+            padding: 3px;
+            border-radius: 10px;
+            margin-right: auto; /* Push csv button to right */
+        }
+
+        .nav-btn {
+            border: none;
+            background: none;
+            padding: 6px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            border-radius: 7px;
+            cursor: pointer;
+            color: var(--text-main);
+            transition: 0.2s;
+        }
+
+        .nav-btn.active {
+            background: var(--card-bg);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            font-weight: 600;
+        }
+
+        /* --- BUTTONS --- */
+        .btn-primary { background: var(--primary); color: #fff; border: none; padding: 14px; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; transition: opacity 0.2s; }
+        .btn-primary:hover { opacity: 0.9; }
+
+        .btn-secondary {
+            background: rgba(0, 122, 255, 0.1);
+            color: var(--primary);
+            border: none;
+            padding: 10px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.2s;
+        }
+        .btn-secondary:hover { background: rgba(0, 122, 255, 0.2); }
+
+        .btn-add-step {
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        /* Form & Inputs */
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 16px; }
+        .form-group { display: flex; flex-direction: column; }
+        
+        label { font-size: 11px; font-weight: 600; margin-bottom: 6px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.6px; }
+        
+        input, select, textarea {
+            background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-main);
+            padding: 10px 12px; border-radius: 10px; font-size: 15px; outline: none; width: 100%; box-sizing: border-box;
+        }
+
+        #dynamicFields { padding: 16px; background: rgba(128,128,128,0.06); border-radius: 10px; border: 1px dashed var(--border-color); margin-bottom: 16px; }
+        .field-group { display: none; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; }
+        .field-group.active { display: grid; }
+
+
+        /* Tables */
+        table { width: 100%; border-collapse: collapse; min-width: 650px; }
+        th { font-size: 12px; color: var(--text-secondary); text-transform: uppercase; text-align: left; padding: 12px; border-bottom: 1px solid var(--border-color); }
+        
+        .date-row { background: rgba(128, 128, 128, 0.05); cursor: pointer; font-weight: 600; font-size: 14px; }
+        .date-row td { padding: 12px; border-bottom: 1px solid var(--border-color); }
+        
+        .workout-row { cursor: pointer; display: none; }
+        .workout-row.visible { display: table-row; }
+        .workout-row td { padding: 12px; border-bottom: 1px solid var(--border-color); }
+        
+        th:last-child, td:last-child { text-align: right; padding-right: 12px; }
+
+        .details-row { display: none; background: rgba(128, 128, 128, 0.02); }
+        .details-row.visible { display: table-row; }
+        .details-content { padding: 12px 12px 12px 40px; font-size: 13px; color: var(--text-secondary); display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+
+        .tag { padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 600; display: inline-block; min-width: 70px; text-align: center; }
+        .type-running, .type-cycling { color:#FF9500; background:rgba(255,149,0,0.15); }
+        .type-swimming, .type-rowing { color:#007AFF; background:rgba(0,122,255,0.15); }
+        .type-weights, .type-strength, .type-core { color:#AF52DE; background:rgba(175,82,222,0.15); }
+        .type-yoga, .type-pilates, .type-hiit, .type-other { color:#34C759; background:rgba(52,199,89,0.15); }
+
+        /* --- DASHBOARD STYLES --- */
+        .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        
+        .stat-card {
+            padding: 12px 16px;
+            border-radius: 12px;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 60px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .stat-card.orange { background: linear-gradient(135deg, #FF9500, #FF3B30); }
+        .stat-card.blue { background: linear-gradient(135deg, #007AFF, #5856D6); }
+        .stat-card.purple { background: linear-gradient(135deg, #AF52DE, #FF2D55); }
+        .stat-card.green { background: linear-gradient(135deg, #34C759, #30B0C7); }
+        .stat-card.gray { background: linear-gradient(135deg, #8E8E93, #636366); }
+
+        .stat-label { font-size: 11px; text-transform: uppercase; opacity: 0.8; font-weight: 600; }
+        .stat-value { font-size: 20px; font-weight: 700; }
+        .stat-unit { font-size: 13px; font-weight: 500; opacity: 0.9; }
+
+        canvas { width: 100%; height: 280px; margin-bottom: 20px; }
+        
+        .bin { color: rgba(255, 59, 48, 0.5); font-size: 14px; border:none; background:none; cursor: pointer; padding: 8px;}
+        .bin:hover { color: #FF3B30; }
+
+        /* --- DISTRIBUTION CHART STYLES --- */
+        .dist-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .dist-wrapper { width: 100%; }
+        #distChart { width: 100%; height: 320px; }
+        .dist-legend { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-color); }
+        .legend-item { display: flex; align-items: center; font-size: 13px; }
+        .legend-dot { width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; }
+        .legend-info { display: flex; flex-direction: column; }
+        .legend-name { font-weight: 500; }
+        .legend-stats { font-size: 11px; color: var(--text-secondary); }
+
+        /* --- PREP BUILDER STYLES --- */
+        .prep-container { display: none; }
+        .prep-container.active { display: block; }
+        
+        .builder-grid { display: grid; grid-template-columns: 1fr 300px; gap: 20px; }
+        @media (max-width: 800px) { .builder-grid { grid-template-columns: 1fr; } }
+
+        .step-list { list-style: none; padding: 0; margin: 0; }
+        .step-item {
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            padding: 16px;
+            margin-bottom: 12px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+        }
+        
+        .step-item::before {
+            content:''; position: absolute; left:0; top: 12px; bottom: 12px; width: 4px; border-radius: 0 4px 4px 0;
+        }
+        .step-warmup::before { background: #34C759; }
+        .step-work::before { background: #FF9500; }
+        .step-cooldown::before { background: #007AFF; }
+        .step-rest::before { background: #8E8E93; }
+
+        .step-info { display: flex; flex-direction: column; gap: 4px; }
+        .step-title { font-weight: 700; font-size: 15px; }
+        .step-detail { font-size: 13px; color: var(--text-secondary); }
+        .step-tag { font-size: 10px; text-transform: uppercase; font-weight: 700; opacity: 0.6; }
+
+        .add-panel { background: rgba(128,128,128,0.04); padding: 16px; border-radius: 12px; border: 1px dashed var(--border-color); }
+        .add-title { font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 10px; }
+        
+        .summary-box {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #007AFF, #5856D6);
+            color: white;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        .summary-total { font-size: 32px; font-weight: 800; }
+        .summary-label { font-size: 13px; font-weight: 500; opacity: 0.9; }
+
+        .views-section { display: none; }
+        .views-section.visible { display: block; }
+        
+        .app-title {
+            font-size: 26px; /* Matches the original h1 font size */
+            font-weight: 700; /* Makes the text bold */
+            margin: 0; /* Removes default div margin */
+            display: flex;
+            align-items: center;
+            gap: 8px; /* Adds space between icons and text */
+
+            /* Gradient effect */
+            background: linear-gradient(to right, var(--primary), #AF52DE); /* Blue to Purple gradient */
+            -webkit-background-clip: text; /* Clips the background to the text */
+            -webkit-text-fill-color: transparent; /* Makes the text transparent, showing the background */
+            background-clip: text; /* Standard property for clipping */
+            color: transparent; /* Fallback for browsers that don't support -webkit-text-fill-color */
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+
+    <div class="header">
+        <div style="display:flex; align-items:center; gap:16px; flex:1;">
+            <div class="app-title">
+            <i class="fa-solid fa-dumbbell"></i>
+                <i class="fa-solid fa-person-running"></i>
+    <i class="fa-solid fa-person-biking"></i>
+    <i class="fa-solid fa-person-swimming"></i>
+</div>
+
+            <div class="nav-tabs">
+                <button class="nav-btn active" onclick="switchView('tracker')">Tracker</button>
+                <button class="nav-btn" onclick="switchView('prep')">Workout Prep</button>
+            </div>
+        </div>
+        <button class="btn-secondary" onclick="exportToCSV()">
+            Export CSV data <i class="fa-solid fa-circle-down"></i>
+        </button>
+    </div>
+
+    <!-- ========================= TRACKER VIEW ========================= -->
+    <div id="view-tracker" class="views-section visible">
+        <!-- LOG ACTIVITY CARD -->
+        <div class="card">
+            <h2>Log Activity</h2>
+            <form id="workoutForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Date</label>
+                        <input type="date" id="date" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Activity</label>
+                        <select id="type" required>
+                            <option>Running</option>
+                            <option>Swimming</option>
+                            <option>Weights</option>
+                            <option>Strength</option>
+                            <option>Core</option>
+                            <option>Cycling</option>
+                            <option>Rowing</option>
+                            <option>Yoga</option>
+                            <option>Pilates</option>
+                            <option>HIIT</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Duration (min)</label>
+                        <input type="number" id="duration" min="1" required>
+                    </div>
+                </div>
+
+                <!-- Dynamic Fields -->
+                <div id="dynamicFields">
+                    <div id="fields-running" class="field-group active">
+                        <input type="number" step="0.01" placeholder="Distance (km)" data-label="Distance" id="run-dist">
+                        <input type="number" step="0.01" placeholder="Pace (min/km)" data-label="Pace" id="run-pace">
+                        <input type="text" placeholder="Intervals (e.g. 5x1km)" data-label="Intervals">
+                    </div>
+                    <div id="fields-cycling" class="field-group">
+                        <input type="number" step="0.01" placeholder="Distance (km)" data-label="Distance">
+                        <input type="number" step="0.1" placeholder="Avg Speed (km/h)" data-label="Avg Speed">
+                    </div>
+                    <div id="fields-rowing" class="field-group">
+                        <input type="number" step="0.01" placeholder="Distance (km)" data-label="Distance">
+                        <input type="number" placeholder="Stroke rate" data-label="Stroke Rate">
+                    </div>
+                    <div id="fields-swimming" class="field-group">
+                        <input type="number" placeholder="Laps" data-label="Laps">
+                        <input type="number" value="25" placeholder="Pool size (m)" data-label="Pool Size">
+                    </div>
+                    
+                    <!-- Expanded Weights Section -->
+                    <div id="fields-weights" class="field-group">
+                    <select data-label="Exercise">
+                        <option value="">Select Exercise...</option>
+                        
+                        <optgroup label="Lower Body (Push / Squat)">
+                            <option>Back Squat</option>
+                            <option>Front Squat</option>
+                            <option>Goblet Squat</option>
+                            <option>Overhead Squat</option>
+                            <option>Bulgarian Split Squat</option>
+                            <option>Leg Press</option>
+                            <option>Hack Squat</option>
+                            <option>Lunges</option>
+                            <option>Step-ups</option>
+                        </optgroup>
+                        
+                        <optgroup label="Lower Body (Hinge / Posterior)">
+                            <option>Conventional Deadlift</option>
+                            <option>Romanian Deadlift</option>
+                            <option>Sumo Deadlift</option>
+                            <option>Trap Bar Deadlift</option>
+                            <option>Stiff-Legged Deadlift</option>
+                            <option>Good Mornings</option>
+                            <option>Hip Thrust / Glute Bridge</option>
+                            <option>Cable Pull-through</option>
+                        </optgroup>
+
+                        <optgroup label="Upper Body (Push)">
+                            <option>Bench Press</option>
+                            <option>Incline Bench Press</option>
+                            <option>Decline Bench Press</option>
+                            <option>Close-Grip Bench Press</option>
+                            <option>Dumbbell/Cable Fly</option>
+                            <option>Push-ups (Weighted)</option>
+                            <option>Machine Chest Press</option>
+                            <option>Overhead Press</option>
+                            <option>Seated DB Shoulder Press</option>
+                            <option>Arnold Press</option>
+                            <option>Push Press</option>
+                            <option>Lateral Raises</option>
+                        </optgroup>
+
+                        <optgroup label="Back / Pulling">
+                            <option>Bent-Over Row</option>
+                            <option>Single-Arm DB Row</option>
+                            <option>Pendlay Row</option>
+                            <option>Seated Cable Row</option>
+                            <option>T-Bar Row</option>
+                            <option>Lat Pulldown</option>
+                            <option>Pull-ups / Chin-ups</option>
+                            <option>Face Pulls</option>
+                            <option>Shrugs</option>
+                        </optgroup>
+
+                        <optgroup label="Arms">
+                            <option>Bicep Curl</option>
+                            <option>Hammer Curl</option>
+                            <option>Concentration Curl</option>
+                            <option>Cable Curl</option>
+                            <option>Tricep Extension</option>
+                            <option>Tricep Dips</option>
+                            <option>Tricep Pushdowns</option>
+                            <option>Kickbacks</option>
+                        </optgroup>
+
+                        <optgroup label="Core / Abs">
+                            <option>Weighted Plank</option>
+                            <option>Ab Wheel Rollout</option>
+                            <option>Cable Crunch</option>
+                            <option>Hanging Leg Raises</option>
+                            <option>Russian Twists</option>
+                            <option>Dead Bugs</option>
+                        </optgroup>
+                    </select>
+                    <input type="number" placeholder="Sets" data-label="Sets">
+                    <input type="number" placeholder="Reps" data-label="Reps">
+                    <input type="number" step="0.5" placeholder="Weight (kg)" data-label="Weight">
+                </div>
+
+                    <div id="fields-strength" class="field-group">
+    <select data-label="Exercise">
+        <option value="">Select Strength Exercise...</option>
+        
+        <optgroup label="Lower Body – Squat Pattern (Quad Dominant)">
+            <option>Low-Bar Back Squat</option>
+            <option>High-Bar Back Squat</option>
+            <option>Front Squat</option>
+            <option>Paused Back Squat</option>
+            <option>Box Squat</option>
+            <option>Safety Bar Squat (SSB)</option>
+            <option>Tempo Squat</option>
+        </optgroup>
+        
+        <optgroup label="Upper Body – Horizontal Push (Bench Press Pattern)">
+            <option>Competition Bench Press (Paused)</option>
+            <option>Close-Grip Bench Press</option>
+            <option>Paused Bench Press</option>
+            <option>Board Press / Pin Press</option>
+            <option>Floor Press</option>
+            <option>Spoto Press</option>
+        </optgroup>
+        
+        <optgroup label="Lower Body – Hinge Pattern (Deadlift)">
+            <option>Conventional Deadlift</option>
+            <option>Sumo Deadlift</option>
+            <option>Deficit Deadlift</option>
+            <option>Paused Deadlift</option>
+            <option>Rack Pull</option>
+            <option>Block Pull</option>
+            <option>Trap Bar Deadlift</option>
+        </optgroup>
+        
+        <optgroup label="Upper Body – Vertical Push (Overhead Press Pattern)">
+            <option>Strict Standing Overhead Press / Military Press</option>
+            <option>Push Press</option>
+            <option>Seated Overhead Press</option>
+        </optgroup>
+        
+        <optgroup label="Pulling / Back Strength (Assistance for Balance)">
+            <option>Weighted Pull-ups / Chin-ups</option>
+            <option>Barbell Bent-Over Row</option>
+            <option>Pendlay Row</option>
+            <option>Heavy Barbell Shrugs</option>
+        </optgroup>
+        
+        <optgroup label="Core / Grip / Assistance for Strength">
+            <option>Heavy Ab Wheel Rollouts</option>
+            <option>Weighted Planks</option>
+            <option>Farmer's Walks / Heavy Carries</option>
+        </optgroup>
+    </select>
+
+    <input type="number" placeholder="Sets" data-label="Sets">
+    <input type="number" placeholder="Reps" data-label="Reps">
+    <input type="number" step="0.5" placeholder="Weight (kg)" data-label="Weight">
+</div>
+
+                    <div id="fields-core" class="field-group">
+                        <input type="text" placeholder="Exercise name" data-label="Exercise">
+                        <input type="number" placeholder="Sets" data-label="Sets">
+                        <input type="text" placeholder="Reps / Time" data-label="Reps/Time">
+                    </div>
+
+                    <div id="fields-yoga" class="field-group">
+                        <input type="text" placeholder="Style" data-label="Style">
+                    </div>
+                    <div id="fields-pilates" class="field-group">
+                        <input type="text" placeholder="Focus" data-label="Focus">
+                    </div>
+                    <div id="fields-hiit" class="field-group">
+                        <input type="text" placeholder="Format" data-label="Format">
+                        <input type="number" placeholder="Rounds" data-label="Rounds">
+                    </div>
+                    <div id="fields-other" class="field-group">
+                        <input type="text" placeholder="Style or focus" data-label="Details">
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom:16px;">
+                    <label>Notes</label>
+                    <textarea id="notes" rows="2"></textarea>
+                </div>
+
+                <button class="btn-primary">Log Workout</button>
+            </form>
+        </div>
+
+        <!-- HISTORY CARD -->
+        <div class="card">
+            <h2>Recent History</h2>
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width:40px;"></th>
+                            <th>Date / Activity</th>
+                            <th>Duration</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="workoutList"></tbody>
+                </table>
+                <div id="emptyState" class="empty">No workouts yet</div>
+            </div>
+        </div>
+
+        <!-- DISTRIBUTION CARD -->
+        <div class="card">
+            <div class="dist-header">
+                <h2 style="margin:0;">Workout Distribution</h2>
+                <select id="distYearSelect" style="width: auto; margin:0;"></select>
+            </div>
+            <div class="dist-wrapper">
+                <canvas id="distChart"></canvas>
+                <div class="dist-legend" id="distLegend"></div>
+            </div>
+        </div>
+
+        <!-- ANALYTICS CARD -->
+        <div class="card">
+            <div class="dashboard-header">
+                <h2>Performance Analytics</h2>
+                <select id="statsTypeSelect" style="width: auto;">
+                    <option value="Running">Running</option>
+                    <option value="Cycling">Cycling</option>
+                    <option value="Weights">Weights</option>
+                    <option value="Swimming">Swimming</option>
+                    <option value="Rowing">Rowing</option>
+                </select>
+            </div>
+
+            <div class="stat-grid" id="statCards"></div>
+            <canvas id="statsChart"></canvas>
+
+            <h3>Monthly Breakdown</h3>
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead id="statsTableHead"></thead>
+                    <tbody id="statsTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================= WORKOUT PREP VIEW ========================= -->
+    <div id="view-prep" class="views-section">
+        <div class="card">
+            <div class="dashboard-header">
+                <h2>Create Workout Plan</h2>
+                <select id="prep-type" onchange="resetPrep()" style="width:auto;">
+                    <option value="Running">Running</option>
+                    <option value="Cycling">Cycling</option>
+                    <option value="Rowing">Rowing</option>
+                </select>
+            </div>
+
+            <div class="builder-grid">
+                <!-- Left: The Plan -->
+                <div>
+                    <div class="summary-box">
+                        <div id="prep-total-duration" class="summary-total">0</div>
+                        <div class="summary-label">TOTAL MINUTES</div>
+                        <div id="prep-total-distance" style="font-size:12px; margin-top:5px; opacity:0.8">0 km est.</div>
+                    </div>
+                    
+                    <ul id="prep-list" class="step-list">
+                        <!-- Steps go here -->
+                        <div style="text-align:center; padding:30px; color:var(--text-secondary); border: 2px dashed var(--border-color); border-radius:12px;">
+                            Start adding steps to build your workout
+                        </div>
+                    </ul>
+                </div>
+
+                <!-- Right: The Controls -->
+                <div>
+                    <div class="add-panel">
+                        <div class="add-title">Add a Step</div>
+                        
+                        <div class="form-group" style="margin-bottom:12px;">
+                            <label>Phase</label>
+                            <select id="step-phase">
+                                <option value="warmup">Warm Up</option>
+                                <option value="work">Active Interval / Run</option>
+                                <option value="rest">Recovery / Rest</option>
+                                <option value="cooldown">Cool Down</option>
+                            </select>
+                        </div>
+
+                        <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:12px;">
+                            <div class="form-group">
+                                <label>Target Type</label>
+                                <select id="step-target-type" onchange="togglePrepInputs()">
+                                    <option value="time">Time</option>
+                                    <option value="dist">Distance</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label id="step-val-label">Duration (min)</label>
+                                <input type="number" id="step-val" value="10">
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom:16px;">
+                            <label>Intensity / Pace</label>
+                            <input type="text" id="step-intensity" placeholder="e.g. 5:30/km, Easy, Sprint">
+                        </div>
+
+                        <button class="btn-add-step" onclick="addPrepStep()">
+                            <i class="fa-solid fa-plus"></i> Add to Plan
+                        </button>
+                    </div>
+
+                    <div class="add-panel" style="margin-top:20px; border-style:solid; background:var(--card-bg);">
+                         <div class="add-title">Actions</div>
+                         <button class="btn-secondary" style="width:100%; justify-content:center; margin-bottom:10px;" onclick="window.print()">
+                            <i class="fa-solid fa-print"></i> Print / Save PDF
+                         </button>
+                         <button class="btn-text" style="color:var(--danger); width:100%;" onclick="resetPrep()">
+                            Clear All
+                         </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+// --- GLOBAL NAVIGATION ---
+function switchView(viewName) {
+    // Buttons
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    if(viewName === 'tracker') document.querySelectorAll('.nav-btn')[0].classList.add('active');
+    else document.querySelectorAll('.nav-btn')[1].classList.add('active');
+
+    // Views
+    document.querySelectorAll('.views-section').forEach(v => v.classList.remove('visible'));
+    document.getElementById('view-' + viewName).classList.add('visible');
+}
+
+// --- DATA INITIALIZATION ---
+let workouts = [];
+try { workouts = JSON.parse(localStorage.getItem('smartWorkouts')) || []; } catch (e) { workouts = []; }
+
+// --- DOM ELEMENTS (TRACKER) ---
+const form = document.getElementById('workoutForm');
+const typeSelect = document.getElementById('type');
+const statsTypeSelect = document.getElementById('statsTypeSelect');
+const distYearSelect = document.getElementById('distYearSelect');
+const canvas = document.getElementById('statsChart');
+const ctx = canvas.getContext('2d');
+const distCanvas = document.getElementById('distChart');
+const distCtx = distCanvas.getContext('2d');
+
+// --- RUNNING AUTO CALC ELEMENTS ---
+const globalDuration = document.getElementById('duration');
+const runDistInput = document.getElementById('run-dist');
+const runPaceInput = document.getElementById('run-pace'); 
+
+// Color Palette
+const workoutColors = {
+    'Running': '#FF9500', 'Cycling': '#FF9500', 
+    'Swimming': '#007AFF', 'Rowing': '#007AFF',
+    'Weights': '#AF52DE', 'Strength': '#AF52DE', 'Core': '#AF52DE',
+    'Yoga': '#34C759', 'Pilates': '#34C759', 'HIIT': '#34C759', 'Other': '#8e8e93'
+};
+
+document.getElementById('date').valueAsDate = new Date();
+
+// --- EVENT LISTENERS ---
+typeSelect.addEventListener('change', updateFields);
+form.addEventListener('submit', addWorkout);
+statsTypeSelect.addEventListener('change', updateDashboard);
+distYearSelect.addEventListener('change', drawDistribution);
+
+// Auto Calculate Speed Listener
+function calcPace() {
+    const d = parseFloat(runDistInput.value);
+    const t = parseFloat(globalDuration.value);
+    
+    if(d > 0 && t > 0) {
+        const pace = t / d;
+        runPaceInput.value = pace.toFixed(2);
+    }
+}
+
+globalDuration.addEventListener('input', calcPace);
+runDistInput.addEventListener('input', calcPace);
+
+
+// --- INITIAL RENDER ---
+updateFields();
+renderHistory();
+updateDashboard();
+initDistribution();
+
+// --- FUNCTIONS ---
+function updateFields() {
+    document.querySelectorAll('.field-group').forEach(g => g.classList.remove('active'));
+    const group = document.getElementById('fields-' + typeSelect.value.toLowerCase());
+    if (group) group.classList.add('active');
+}
+
+function addWorkout(e) {
+    e.preventDefault();
+    const dateInput = document.getElementById('date');
+    const durationInput = document.getElementById('duration');
+    const notesInput = document.getElementById('notes');
+
+    let details = [];
+    const activeGroup = document.querySelector('.field-group.active');
+    if (activeGroup) {
+        const inputs = activeGroup.querySelectorAll('input, select');
+        inputs.forEach(input => {
+            if (input.value && input.value.trim() !== "") {
+                let label = input.getAttribute('data-label') || input.placeholder || "Detail";
+                label = label.replace(/\s*\(.*?\)\s*/g, ''); 
+                let value = input.value;
+                if(input.placeholder && input.placeholder.includes('km')) value += " km";
+                if(input.placeholder && input.placeholder.includes('kg')) value += " kg";
+                if(input.placeholder && input.placeholder.includes('m)')) value += " m";
+                details.push({ label: label, value: value });
+            }
+        });
+    }
+
+    workouts.unshift({
+        id: Date.now(),
+        date: dateInput.value,
+        type: typeSelect.value,
+        duration: Number(durationInput.value),
+        notes: notesInput.value,
+        details: details
+    });
+
+    workouts.sort((a, b) => new Date(b.date) - new Date(a.date));
+    localStorage.setItem('smartWorkouts', JSON.stringify(workouts));
+    
+    form.reset();
+    dateInput.valueAsDate = new Date();
+    updateFields();
+    renderHistory();
+    updateDashboard();
+    initDistribution();
+}
+
+function remove(id) {
+    if(!confirm("Delete this workout?")) return;
+    const i = workouts.findIndex(w => w.id === id);
+    if (i > -1) {
+        workouts.splice(i, 1);
+        localStorage.setItem('smartWorkouts', JSON.stringify(workouts));
+        renderHistory();
+        updateDashboard();
+        initDistribution();
+    }
+}
+
+// --- HISTORY RENDER ---
+function renderHistory() {
+    const list = document.getElementById('workoutList');
+    const emptyState = document.getElementById('emptyState');
+    list.innerHTML = '';
+    
+    const displayWorkouts = workouts.slice(0, 50); 
+    emptyState.style.display = displayWorkouts.length ? 'none' : 'block';
+
+    const groups = {};
+    displayWorkouts.forEach(w => {
+        if (!groups[w.date]) groups[w.date] = [];
+        groups[w.date].push(w);
+    });
+
+    Object.keys(groups).forEach(dateKey => {
+        const dayWorkouts = groups[dateKey];
+        const dateObj = new Date(dateKey);
+        const dateStr = dateObj.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+        const dayDuration = dayWorkouts.reduce((sum, w) => sum + w.duration, 0);
+
+        const dateRow = document.createElement('tr');
+        dateRow.className = 'date-row';
+        dateRow.innerHTML = `
+            <td style="text-align:center;"><i class="fa-solid fa-chevron-right"></i></td>
+            <td>
+                ${dateStr} 
+                <span style="font-weight:400; color:var(--text-secondary); font-size:12px;">
+                   • ${dayWorkouts.length} Workout${dayWorkouts.length>1?'s':''}
+                </span>
+            </td>
+            <td><strong>${dayDuration} min</strong></td>
+            <td></td>
+        `;
+        
+        dateRow.onclick = function() {
+            this.classList.toggle('expanded');
+            document.querySelectorAll(`.group-${dateKey}`).forEach(row => row.classList.toggle('visible'));
+            const icon = this.querySelector('i');
+            icon.style.transform = icon.style.transform === 'rotate(90deg)' ? 'rotate(0deg)' : 'rotate(90deg)';
+        };
+        list.appendChild(dateRow);
+
+        dayWorkouts.forEach(w => {
+            const tr = document.createElement('tr');
+            tr.className = `workout-row group-${dateKey}`;
+            
+            tr.innerHTML = `
+                <td></td>
+                <td style="padding-left:12px;">
+                    <span class="tag type-${w.type.toLowerCase()}">${w.type}</span>
+                    ${w.notes ? '<i class="fa-regular fa-angles-right" style="color:var(--primary);margin-left:8px;font-size:12px;"></i>' : ''} 
+                </td>
+                <td>${w.duration} min</td>
+                <td>
+                    <button class="bin" onclick="remove(${w.id}); event.stopPropagation();">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </td>
+            `;
+            
+            tr.onclick = function() {
+                const det = document.getElementById(`details-${w.id}`);
+                if(det) det.classList.toggle('visible');
+            };
+            list.appendChild(tr);
+
+            if ((w.details && w.details.length) || w.notes) {
+                const dTr = document.createElement('tr');
+                dTr.id = `details-${w.id}`;
+                dTr.className = 'details-row';
+                let html = '<div class="details-content">';
+                if(w.details) w.details.forEach(d => html += `<div><b>${d.label}:</b> ${d.value}</div>`);
+                if(w.notes) html += `<div style="grid-column:1/-1; font-style:italic;">"${w.notes}"</div>`;
+                html += '</div>';
+                dTr.innerHTML = `<td colspan="4" style="padding:0">${html}</td>`;
+                list.appendChild(dTr);
+            }
+        });
+    });
+}
+
+// --- DISTRIBUTION CHART ---
+function initDistribution() {
+    const years = [...new Set(workouts.map(w => new Date(w.date).getFullYear()))];
+    const currentYear = new Date().getFullYear();
+    if(!years.includes(currentYear)) years.push(currentYear);
+    years.sort((a,b) => b - a);
+
+    const oldVal = distYearSelect.value;
+    distYearSelect.innerHTML = '';
+    years.forEach(y => {
+        const opt = document.createElement('option');
+        opt.value = y;
+        opt.text = y;
+        distYearSelect.appendChild(opt);
+    });
+
+    if(years.includes(Number(oldVal))) distYearSelect.value = oldVal;
+    drawDistribution();
+}
+
+function drawDistribution() {
+    const year = Number(distYearSelect.value);
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    
+    const yearWorkouts = workouts.filter(w => new Date(w.date).getFullYear() === year);
+    
+    const monthData = Array(12).fill(null).map(() => ({ total: 0, types: {} }));
+    const yearTotals = {}; 
+
+    yearWorkouts.forEach(w => {
+        const mIndex = new Date(w.date).getMonth();
+        const type = w.type;
+        monthData[mIndex].total++;
+        monthData[mIndex].types[type] = (monthData[mIndex].types[type] || 0) + 1;
+        yearTotals[type] = (yearTotals[type] || 0) + 1;
+    });
+
+    const dpr = window.devicePixelRatio || 1;
+    const rect = distCanvas.getBoundingClientRect();
+    distCanvas.width = rect.width * dpr;
+    distCanvas.height = 320 * dpr;
+    distCtx.scale(dpr, dpr);
+    distCtx.clearRect(0, 0, rect.width, 320);
+
+    const pad = { left: 40, right: 20, top: 20, bottom: 20 };
+    const chartW = rect.width - pad.left - pad.right;
+    const chartH = 320 - pad.top - pad.bottom;
+    const rowH = chartH / 12;
+    
+    const maxMonthly = Math.max(...monthData.map(m => m.total), 1);
+    
+    distCtx.beginPath();
+    distCtx.strokeStyle = 'rgba(128,128,128,0.2)';
+    distCtx.moveTo(pad.left, pad.top);
+    distCtx.lineTo(pad.left, 320 - pad.bottom);
+    distCtx.stroke();
+
+    months.forEach((m, i) => {
+        const y = pad.top + (i * rowH);
+        const barY = y + (rowH * 0.2);
+        const barH = rowH * 0.6;
+        
+        distCtx.fillStyle = '#8e8e93';
+        distCtx.font = '11px -apple-system';
+        distCtx.textAlign = 'right';
+        distCtx.textBaseline = 'middle';
+        distCtx.fillText(m, pad.left - 8, y + (rowH/2));
+
+        let currentX = pad.left;
+        const types = Object.keys(monthData[i].types).sort();
+        
+        types.forEach(type => {
+            const count = monthData[i].types[type];
+            const width = (count / maxMonthly) * chartW;
+            const color = workoutColors[type] || '#8e8e93';
+
+            distCtx.fillStyle = color;
+            distCtx.fillRect(currentX, barY, width, barH);
+            
+            distCtx.fillStyle = '#fff'; 
+            distCtx.fillRect(currentX + width - 1, barY, 1, barH);
+
+            currentX += width;
+        });
+
+        if(monthData[i].total > 0) {
+            distCtx.fillStyle = '#8e8e93';
+            distCtx.textAlign = 'left';
+            distCtx.fillText(monthData[i].total, currentX + 5, barY + barH/2);
+        }
+    });
+
+    const legendEl = document.getElementById('distLegend');
+    legendEl.innerHTML = '';
+    
+    const sortedTypes = Object.keys(yearTotals).sort((a,b) => yearTotals[b] - yearTotals[a]);
+    const totalYearCount = yearWorkouts.length;
+
+    if (totalYearCount === 0) {
+        legendEl.innerHTML = '<div style="color:var(--text-secondary); width:100%; text-align:center;">No data for selected year</div>';
+        return;
+    }
+
+    sortedTypes.forEach(type => {
+        const count = yearTotals[type];
+        const percent = Math.round((count / totalYearCount) * 100);
+        const color = workoutColors[type] || '#8e8e93';
+        
+        legendEl.innerHTML += `
+            <div class="legend-item">
+                <div class="legend-dot" style="background-color:${color}"></div>
+                <div class="legend-info">
+                    <span class="legend-name">${type}</span>
+                    <span class="legend-stats">${count} (${percent}%)</span>
+                </div>
+            </div>
+        `;
+    });
+}
+
+// --- ANALYTICS ENGINE ---
+function parseVal(str) {
+    if(!str) return 0;
+    const match = str.toString().match(/[\d\.]+/);
+    return match ? parseFloat(match[0]) : 0;
+}
+
+function getDetail(w, labelPart) {
+    if(!w.details) return 0;
+    const found = w.details.find(d => d.label.toLowerCase().includes(labelPart.toLowerCase()));
+    return found ? parseVal(found.value) : 0;
+}
+
+function updateDashboard() {
+    const type = statsTypeSelect.value;
+    const filtered = workouts.filter(w => w.type === type).reverse();
+    
+    const byMonth = {};
+    let totalDist = 0;
+    let totalDur = 0;
+    let totalSets = 0;
+    let weightSum = 0; 
+    let weightCount = 0;
+    let speedSum = 0;
+    let speedCount = 0;
+
+    filtered.forEach(w => {
+        const d = new Date(w.date);
+        const monthKey = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+        
+        if(!byMonth[monthKey]) byMonth[monthKey] = { count:0, dur:0, dist:0, speedAcc:0, speedN:0, sets:0, weightAcc:0, weightN:0 };
+        
+        const dist = getDetail(w, 'Distance'); 
+        const speed = getDetail(w, 'Speed'); 
+        const sets = getDetail(w, 'Sets');
+        const weight = getDetail(w, 'Weight');
+        
+        byMonth[monthKey].count++;
+        byMonth[monthKey].dur += w.duration;
+        byMonth[monthKey].dist += dist;
+        byMonth[monthKey].sets += sets;
+        if(speed > 0) { byMonth[monthKey].speedAcc += speed; byMonth[monthKey].speedN++; }
+        if(weight > 0) { byMonth[monthKey].weightAcc += weight; byMonth[monthKey].weightN++; }
+
+        totalDur += w.duration;
+        totalDist += dist;
+        totalSets += sets;
+        if(speed > 0) { speedSum += speed; speedCount++; }
+        if(weight > 0) { weightSum += weight; weightCount++; }
+    });
+
+    const cardContainer = document.getElementById('statCards');
+    cardContainer.innerHTML = '';
+    
+    function createCard(color, label, value, unit) {
+        return `<div class="stat-card ${color}"><div class="stat-label">${label}</div><div><span class="stat-value">${value}</span> <span class="stat-unit">${unit}</span></div></div>`;
+    }
+
+    if(type === 'Running' || type === 'Cycling' || type === 'Rowing' || type === 'Swimming') {
+        const unit = (type==='Swimming') ? 'laps' : 'km';
+        const distVal = (type==='Swimming') ? totalDist : totalDist.toFixed(1);
+        const avgSpeed = speedCount ? (speedSum/speedCount).toFixed(1) : '-';
+        
+        cardContainer.innerHTML += createCard('orange', 'Total Distance', distVal, unit);
+        cardContainer.innerHTML += createCard('blue', 'Total Time', Math.round(totalDur/60), 'hours');
+        if(type !== 'Swimming') cardContainer.innerHTML += createCard('green', 'Avg Speed', avgSpeed, 'km/h');
+    } 
+    else if (type === 'Weights' || type === 'Strength') {
+        const avgWeight = weightCount ? (weightSum/weightCount).toFixed(1) : '-';
+        cardContainer.innerHTML += createCard('purple', 'Total Sets', totalSets, 'sets');
+        cardContainer.innerHTML += createCard('blue', 'Avg Weight', avgWeight, 'kg');
+        cardContainer.innerHTML += createCard('gray', 'Workouts', filtered.length, 'sessions');
+    } 
+    else {
+        cardContainer.innerHTML += createCard('green', 'Total Time', totalDur, 'min');
+        cardContainer.innerHTML += createCard('gray', 'Workouts', filtered.length, 'count');
+    }
+
+    const tHead = document.getElementById('statsTableHead');
+    const tBody = document.getElementById('statsTableBody');
+    tBody.innerHTML = '';
+
+    if(type === 'Running' || type === 'Cycling' || type === 'Rowing') {
+        tHead.innerHTML = `<tr><th>Month</th><th>Distance</th><th>Avg Speed</th><th>Time</th></tr>`;
+        Object.keys(byMonth).sort().reverse().forEach(k => {
+            const m = byMonth[k];
+            const avgSp = m.speedN ? (m.speedAcc/m.speedN).toFixed(1) : '-';
+            tBody.innerHTML += `<tr><td>${k}</td><td>${m.dist.toFixed(1)} km</td><td>${avgSp} km/h</td><td>${m.dur} min</td></tr>`;
+        });
+    } else if (type === 'Weights' || type === 'Strength') {
+        tHead.innerHTML = `<tr><th>Month</th><th>Total Sets</th><th>Avg Weight</th><th>Time</th></tr>`;
+        Object.keys(byMonth).sort().reverse().forEach(k => {
+            const m = byMonth[k];
+            const avgW = m.weightN ? (m.weightAcc/m.weightN).toFixed(1) : '-';
+            tBody.innerHTML += `<tr><td>${k}</td><td>${m.sets}</td><td>${avgW} kg</td><td>${m.dur} min</td></tr>`;
+        });
+    } else {
+        tHead.innerHTML = `<tr><th>Month</th><th>Workouts</th><th>Total Time</th></tr>`;
+        Object.keys(byMonth).sort().reverse().forEach(k => {
+             const m = byMonth[k];
+             tBody.innerHTML += `<tr><td>${k}</td><td>${m.count}</td><td>${m.dur} min</td></tr>`;
+        });
+    }
+
+    drawSpecificChart(byMonth, type);
+}
+
+function drawSpecificChart(dataObj, type) {
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0,0, rect.width, rect.height);
+
+    const keys = Object.keys(dataObj).sort().slice(-6); 
+    if(!keys.length) return;
+
+    const width = rect.width;
+    const height = rect.height;
+    const pad = {top:20, bottom:30, left:40, right:10};
+
+    let getValue;
+    let color;
+
+    if(['Running','Cycling','Rowing'].includes(type)) {
+        getValue = (k) => dataObj[k].dist;
+        color = '#FF9500';
+    } else if (type === 'Weights' || type === 'Strength') {
+        getValue = (k) => dataObj[k].sets;
+        color = '#AF52DE';
+    } else {
+        getValue = (k) => dataObj[k].dur;
+        color = '#34C759';
+    }
+
+    const values = keys.map(k => getValue(k));
+    const maxVal = Math.max(...values, 1) * 1.2;
+
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(128,128,128,0.2)';
+    ctx.moveTo(pad.left, pad.top);
+    ctx.lineTo(pad.left, height-pad.bottom);
+    ctx.lineTo(width, height-pad.bottom);
+    ctx.stroke();
+
+    const slotW = (width - pad.left - pad.right) / keys.length;
+    const barW = slotW * 0.5;
+
+    keys.forEach((k, i) => {
+        const val = values[i];
+        const barH = (val / maxVal) * (height - pad.top - pad.bottom);
+        const x = pad.left + (i * slotW) + (slotW/2 - barW/2);
+        const y = height - pad.bottom - barH;
+
+        const grd = ctx.createLinearGradient(0, y, 0, height-pad.bottom);
+        grd.addColorStop(0, color);
+        grd.addColorStop(1, color+'44');
+        ctx.fillStyle = grd;
+        ctx.fillRect(x, y, barW, barH);
+
+        ctx.fillStyle = '#1d1d1f';
+        ctx.font = 'bold 10px sans-serif';
+        ctx.textAlign = 'center';
+        if(val > 0) ctx.fillText(Math.round(val), x + barW/2, y - 5);
+
+        ctx.fillStyle = '#8e8e93';
+        ctx.font = '10px sans-serif';
+        ctx.fillText(k.split('-')[1], x + barW/2, height - pad.bottom + 12);
+    });
+}
+
+function exportToCSV() {
+    let csv = 'Date,Type,Duration,Notes,Details\n';
+    workouts.forEach(w => {
+        let detailsStr = "";
+        if(w.details) detailsStr = w.details.map(d => `${d.label}: ${d.value}`).join('; ');
+        csv += `${w.date},${w.type},${w.duration},"${(w.notes || '').replace(/"/g, '""')}","${detailsStr}"\n`;
+    });
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'workouts.csv';
+    a.click();
+}
+
+// ======================= WORKOUT PREP LOGIC =======================
+let prepSteps = [];
+
+function togglePrepInputs() {
+    const target = document.getElementById('step-target-type').value;
+    const label = document.getElementById('step-val-label');
+    const input = document.getElementById('step-val');
+    
+    if(target === 'time') {
+        label.textContent = "Duration (min)";
+        input.placeholder = "Minutes";
+    } else {
+        label.textContent = "Distance (km)";
+        input.placeholder = "Kilometers";
+    }
+}
+
+function addPrepStep() {
+    const phase = document.getElementById('step-phase');
+    const targetType = document.getElementById('step-target-type').value;
+    const val = parseFloat(document.getElementById('step-val').value) || 0;
+    const intensity = document.getElementById('step-intensity').value;
+
+    const phaseLabels = { 'warmup': 'Warm Up', 'work': 'Workout / Interval', 'rest': 'Rest', 'cooldown': 'Cool Down' };
+    
+    prepSteps.push({
+        phase: phase.value,
+        title: phaseLabels[phase.value],
+        targetType: targetType,
+        value: val,
+        intensity: intensity
+    });
+
+    renderPrepList();
+}
+
+function removePrepStep(index) {
+    prepSteps.splice(index, 1);
+    renderPrepList();
+}
+
+function resetPrep() {
+    prepSteps = [];
+    renderPrepList();
+}
+
+function renderPrepList() {
+    const list = document.getElementById('prep-list');
+    list.innerHTML = '';
+    
+    let totalTime = 0;
+    let totalDist = 0;
+
+    prepSteps.forEach((step, index) => {
+        // Stats Calc
+        if(step.targetType === 'time') totalTime += step.value;
+        // Simple heuristic for distance if time is given (e.g. 5:30 pace) or just accumulate dist
+        if(step.targetType === 'dist') {
+            totalDist += step.value;
+            // Estimate time? let's assume 5min/km for rough estimate if no pace logic
+            totalTime += (step.value * 5); 
+        }
+
+        const li = document.createElement('li');
+        li.className = `step-item step-${step.phase}`;
+        
+        let detailText = "";
+        if(step.targetType === 'time') detailText = `${step.value} minutes`;
+        else detailText = `${step.value} km`;
+
+        li.innerHTML = `
+            <div class="step-info">
+                <span class="step-tag">${step.phase}</span>
+                <span class="step-title">${step.title}</span>
+                <span class="step-detail">
+                    ${detailText} ${step.intensity ? '• ' + step.intensity : ''}
+                </span>
+            </div>
+            <button class="bin" onclick="removePrepStep(${index})"><i class="fa-solid fa-xmark"></i></button>
+        `;
+        list.appendChild(li);
+    });
+
+    if(prepSteps.length === 0) {
+        list.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-secondary); border: 2px dashed var(--border-color); border-radius:12px;">Start adding steps to build your workout</div>`;
+    }
+
+    document.getElementById('prep-total-duration').textContent = Math.round(totalTime);
+    document.getElementById('prep-total-distance').textContent = `${totalDist.toFixed(1)} km (defined)`;
+}
+</script>
+
+</body>
+</html>
