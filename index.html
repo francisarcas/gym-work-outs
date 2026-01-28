@@ -1,1247 +1,1485 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Home Bill Tracker</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Workout Tracker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <style>
+        :root {
+            color-scheme: light dark;
+            --primary: #007AFF;
+            --danger: #FF3B30;
+            --success: #34C759;
+            --radius: 14px;
+            --bg-color: #f5f5f7;
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --input-bg: rgba(255, 255, 255, 0.95);
+            --border-color: rgba(0, 0, 0, 0.1);
+            --text-main: #1d1d1f;
+            --text-secondary: #6e6e73;
+            --row-hover: rgba(0,0,0,0.03);
+        }
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<!-- Font Awesome for icons -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #000;
+                --card-bg: rgba(28, 28, 30, 0.9);
+                --input-bg: rgba(44, 44, 46, 0.9);
+                --border-color: rgba(255, 255, 255, 0.15);
+                --text-main: #f5f5f7;
+                --text-secondary: #a1a1a6;
+                --row-hover: rgba(255,255,255,0.05);
+            }
+        }
 
-<style>
-:root {
-  --bg: #0e0e11;
-  --card: #1b1b20;
-  --text: #f5f5f7;
-  --muted: #9a9aa0;
-  --accent1: #0a84ff;
-  --accent2: #ff375f;
-  --danger: #ff453a;
-  --radius: 18px;
-}
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+        }
 
-* {
-  box-sizing: border-box;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-}
+        .container { max-width: 900px; margin: 0 auto; }
 
-body {
-  margin: 0;
-  background: var(--bg);
-  color: var(--text);
-  padding: 20px;
-}
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 24px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+            position: relative;
+        }
 
-.container {
-  max-width: 900px;
-  margin: auto;
-}
+        h1 { font-size: 26px; margin: 0; }
+        h2 { font-size: 18px; margin-bottom: 16px; }
 
-h1 {
-  text-align: center;
-  margin-bottom: 6px;
-}
+        /* HEADER - Desktop styles */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap; /* Allows items to wrap if space is tight before full column stack */
+            gap: 15px;
+        }
 
-.balance {
-  text-align: center;
-  color: var(--muted);
-  margin-bottom: 16px;
-  display: flex; /* Make it a flex container */
-  flex-direction: column; /* Stack items vertically */
-  align-items: center; /* Center horizontally */
-  gap: 8px; /* Space between text and button */
-}
+        .header-top-row { /* New wrapper for app-title and nav-tabs */
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex: 1; /* Allows it to take available space on desktop */
+        }
 
-/* Style for the new settlement action button */
-.balance .action-button {
-  background: #2a2a31; /* Slightly darker than card for contrast, or similar to month tabs */
-  color: var(--accent1);
-  padding: 6px 16px; /* A little more horizontal padding for better look, but still compact */
-  border-radius: 10px;
-  font-weight: 500; /* Slightly less bold than main buttons */
-  font-size: 0.85rem;
-  cursor: pointer;
-  border: none; /* Remove border */
-  display: inline-flex;
-  align-items: center;
-  justify-content: center; /* Center icon and text within the button */
-  gap: 6px;
-  width: auto; /* Explicitly ensure it's not 100% width */
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2); /* Subtle shadow for depth */
-}
+        /* --- NAVIGATION TABS --- */
+        .nav-tabs {
+            display: inline-flex;
+            background: rgba(118, 118, 128, 0.12);
+            padding: 3px;
+            border-radius: 10px;
+            margin-right: auto; /* Push csv button to right on desktop */
+        }
 
-.balance .action-button:hover {
-  background: #3a3a41;
-}
+        .nav-btn {
+            border: none;
+            background: none;
+            padding: 6px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            border-radius: 7px;
+            cursor: pointer;
+            color: var(--text-main);
+            transition: 0.2s;
+        }
 
+        .nav-btn.active {
+            background: var(--card-bg);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            font-weight: 600;
+        }
 
-.card {
-  background: var(--card);
-  border-radius: var(--radius);
-  padding: 16px;
-  margin-bottom: 16px;
-}
+        /* --- BUTTONS --- */
+        .btn-primary { background: var(--primary); color: #fff; border: none; padding: 14px; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; transition: opacity 0.2s; }
+        .btn-primary:hover { opacity: 0.9; }
 
-.chart-wrapper {
-  max-width: 520px;
-  margin: 0 auto;
-}
+        .btn-secondary {
+            background: rgba(0, 122, 255, 0.1);
+            color: var(--primary);
+            border: none;
+            padding: 10px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.2s;
+        }
+        .btn-secondary:hover { background: rgba(0, 122, 255, 0.2); }
 
-canvas {
-  max-height: 160px;
-}
+        .btn-danger-text { /* For clear all button */
+            color: var(--danger);
+            background: rgba(255, 59, 48, 0.1);
+        }
+        .btn-danger-text:hover {
+             background: rgba(255, 59, 48, 0.2);
+        }
 
-/* MONTH AND YEAR TABS */
-.month-tabs, .year-tabs {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  justify-content: center;
-  margin-bottom: 8px; /* Space between year and month tabs */
-}
+        .btn-add-step {
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+        }
 
-.month-tab, .year-tab {
-  padding: 8px 14px;
-  border-radius: 14px;
-  background: #2a2a31;
-  font-size: 0.85rem;
-  cursor: pointer;
-  white-space: nowrap;
-}
+        /* Form & Inputs */
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 16px; }
+        .form-group { display: flex; flex-direction: column; }
+        
+        label { font-size: 11px; font-weight: 600; margin-bottom: 6px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.6px; }
+        
+        input, select, textarea {
+            background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-main);
+            padding: 10px 12px; border-radius: 10px; font-size: 15px; outline: none; width: 100%; box-sizing: border-box;
+        }
 
-.month-tab.active, .year-tab.active {
-  background: var(--accent1);
-}
+        /* Styling for the box around form sections */
+        .form-section-box {
+            padding: 16px;
+            background: rgba(128,128,128,0.06); /* Explicit RGBA, can be var(--input-bg) or similar */
+            border-radius: 10px;
+            border: 1px dashed var(--border-color);
+            margin-bottom: 16px;
+        }
 
-/* New: View Switcher */
-.view-switcher {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 15px; /* Space between buttons and text */
-  margin-top: 10px; /* Space from profiles */
-  margin-bottom: 10px; /* Space to chart card */
-  color: var(--muted);
-  font-size: 0.9rem;
-}
-
-.view-switcher button {
-  background: none;
-  border: none;
-  color: var(--muted);
-  padding: 5px;
-  cursor: pointer;
-  font-size: 1.2rem;
-  width: auto; /* Override general button width */
-}
-
-.view-switcher button:hover {
-  color: var(--text);
-}
-
-
-/* FORM */
-.form {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr auto;
-  gap: 8px;
-}
-
-@media (max-width: 600px) {
-  .form {
-    grid-template-columns: 1fr;
-  }
-}
-
-input, select {
-  background: #2a2a31;
-  border: none;
-  border-radius: 14px;
-  padding: 12px;
-  color: var(--text);
-  width: 100%;
-}
-
-button {
-  border: none;
-  border-radius: 14px;
-  padding: 12px 18px;
-  background: var(--accent1);
-  color: white;
-  font-weight: 600;
-  cursor: pointer;
-  width: 100%;
-}
-
-button:active {
-  opacity: 0.85;
-}
-
-/* EXPENSE LIST */
-.expense {
-  display: flex;
-  flex-wrap: wrap; /* Allow items to wrap to the next line */
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 0;
-  border-bottom: 1px solid #2a2a31;
-}
-
-.expense-left {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.logo {
-  width: 20px;
-  height: 20px;
-  border-radius: 4px;
-}
-
-/* Generic receipt icon style when no specific logo */
-.expense-left .fa-receipt {
-  font-size: 20px; /* Match logo size */
-  width: 20px;
-  text-align: center;
-}
+        /* Dynamic Fields - Now uses .form-section-box */
+        /* #dynamicFields no longer needs its own specific styling, as it inherits from .form-section-box */
+        .field-group { display: none; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; }
+        .field-group.active { display: grid; }
 
 
-.actions {
-  display: flex;
-  gap: 10px;
-  align-items: center; /* Align items vertically */
-}
+        /* Tables */
+        table { width: 100%; border-collapse: collapse; min-width: 650px; }
+        th { font-size: 12px; color: var(--text-secondary); text-transform: uppercase; text-align: left; padding: 12px; border-bottom: 1px solid var(--border-color); }
+        
+        .date-row { background: rgba(128, 128, 128, 0.05); cursor: pointer; font-weight: 600; font-size: 14px; }
+        .date-row td { padding: 12px; border-bottom: 1px solid var(--border-color); }
+        
+        .workout-row { cursor: pointer; display: none; }
+        .workout-row.visible { display: table-row; }
+        .workout-row td { padding: 12px; border-bottom: 1px solid var(--border-color); }
+        
+        th:last-child, td:last-child { text-align: right; padding-right: 12px; }
 
-.action {
-  font-size: 0.8rem; /* Keep a base size for icons */
-  cursor: pointer;
-  display: flex; /* Make actions flex to center icon if needed */
-  align-items: center;
-  justify-content: center;
-}
+        .details-row { display: none; background: rgba(128, 128, 128, 0.02); }
+        .details-row.visible { display: table-row; }
+        .details-content { padding: 12px 12px 12px 40px; font-size: 13px; color: var(--text-secondary); display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
 
-.action.delete {
-  color: var(--danger);
-}
+        .tag { padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 600; display: inline-block; min-width: 70px; text-align: center; }
+        .type-running, .type-cycling { color:#FF9500; background:rgba(255,149,0,0.15); }
+        .type-swimming, .type-rowing { color:#007AFF; background:rgba(0,122,255,0.15); }
+        .type-weights, .type-strength, .type-core { color:#AF52DE; background:rgba(175,82,222,0.15); }
+        .type-yoga, .type-pilates, .type-hiit, .type-other { color:#34C759; background:rgba(52,199,89,0.15); }
 
-/* New CSS for the chevron expand/collapse icon */
-.expand-chart-toggle i {
-  transition: transform 0.2s ease-in-out;
-}
+        /* --- DASHBOARD STYLES --- */
+        .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        
+        .stat-card {
+            padding: 12px 16px;
+            border-radius: 12px;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 60px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .stat-card.orange { background: linear-gradient(135deg, #FF9500, #FF3B30); }
+        .stat-card.blue { background: linear-gradient(135deg, #007AFF, #5856D6); }
+        .stat-card.purple { background: linear-gradient(135deg, #AF52DE, #FF2D55); }
+        .stat-card.green { background: linear-gradient(135deg, #34C759, #30B0C7); }
+        .stat-card.gray { background: linear-gradient(135deg, #8E8E93, #636366); }
 
-.expand-chart-toggle.expanded i {
-  transform: rotate(180deg);
-}
+        .stat-label { font-size: 11px; text-transform: uppercase; opacity: 0.8; font-weight: 600; }
+        .stat-value { font-size: 20px; font-weight: 700; }
+        .stat-unit { font-size: 13px; font-weight: 500; opacity: 0.9; }
 
-/* New CSS for the individual expense chart container */
-.expense-chart-container {
-  width: 100%; /* Take full width of its parent (.expense) */
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px dashed #2a2a31; /* Subtle separator */
-  max-width: 100%; /* Ensure it doesn't overflow */
-}
+        canvas { width: 100%; height: 280px; margin-bottom: 20px; }
+        
+        .bin { color: rgba(255, 59, 48, 0.5); font-size: 14px; border:none; background:none; cursor: pointer; padding: 8px;}
+        .bin:hover { color: #FF3B30; }
 
-.expense-chart-container canvas {
-  max-height: 120px; /* Limit height of individual expense charts */
-  width: 100% !important; /* Override Chart.js default inline width */
-  height: auto !important; /* Override Chart.js default inline height */
-}
+        /* --- DISTRIBUTION CHART STYLES --- */
+        .dist-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .dist-wrapper { width: 100%; }
+        #distChart { width: 100%; height: 320px; }
+        .dist-legend { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-color); }
+        .legend-item { display: flex; align-items: center; font-size: 13px; }
+        .legend-dot { width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; }
+        .legend-info { display: flex; flex-direction: column; }
+        .legend-name { font-weight: 500; }
+        .legend-stats { font-size: 11px; color: var(--text-secondary); }
 
-/* Recurring icon specific styling */
-.recurring-indicator {
-    color: var(--accent1); /* Use accent color for visibility */
-    margin-left: 5px; /* Small space from the note text */
-    font-size: 0.75rem; /* Slightly smaller than note text */
-}
+        /* --- PREP BUILDER STYLES --- */
+        .prep-container { display: none; }
+        .prep-container.active { display: block; }
+        
+        .builder-grid { display: grid; grid-template-columns: 1fr 300px; gap: 20px; }
+        @media (max-width: 800px) { .builder-grid { grid-template-columns: 1fr; } }
 
-/* PROFILES */
-.profiles {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 24px;
-  margin-top: 12px;
-  margin-bottom: 16px;
-}
+        .step-list { list-style: none; padding: 0; margin: 0; }
+        .step-item {
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            padding: 16px;
+            margin-bottom: 12px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+        }
+        
+        .step-item::before {
+            content:''; position: absolute; left:0; top: 12px; bottom: 12px; width: 4px; border-radius: 0 4px 4px 0;
+        }
+        .step-warmup::before { background: #34C759; }
+        .step-work::before { background: #FF9500; }
+        .step-cooldown::before { background: #007AFF; }
+        .step-rest::before { background: #8E8E93; }
 
-.profile {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  border: 3px solid transparent;
-  cursor: pointer;
-}
+        .step-info { display: flex; flex-direction: column; gap: 4px; }
+        .step-title { font-weight: 700; font-size: 15px; }
+        .step-detail { font-size: 13px; color: var(--text-secondary); }
+        .step-tag { font-size: 10px; text-transform: uppercase; font-weight: 700; opacity: 0.6; }
 
-.profile.active {
-  border-color: var(--accent1);
-}
+        .add-panel { background: rgba(128,128,128,0.04); padding: 16px; border-radius: 12px; border: 1px dashed var(--border-color); }
+        .add-title { font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 10px; }
+        
+        .summary-box {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #007AFF, #5856D6);
+            color: white;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        .summary-total { font-size: 32px; font-weight: 800; }
+        .summary-label { font-size: 13px; font-weight: 500; opacity: 0.9; }
 
-/* EXPORT/IMPORT BUTTONS */
-.export {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 10px; /* Gap between buttons */
-}
+        .views-section { display: none; }
+        .views-section.visible { display: block; }
+        
+        .app-title {
+            font-size: 26px;
+            font-weight: 700;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(to right, var(--primary), #AF52DE);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent;
+        }
 
-.export button {
-  display: flex; /* Allows icon and text to be on the same line and align */
-  align-items: center;
-  justify-content: center; /* This will center the icon and text horizontally */
-  gap: 8px; /* Gap between icon and text */
-}
+        /* --- New Styling for Import/Export Buttons --- */
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+            justify-content: flex-end; /* Align to the right on desktop */
+        }
+        @media (max-width: 768px) {
+            .header-actions {
+                width: 100%; /* Take full width on mobile */
+                justify-content: center; /* Center buttons on mobile */
+            }
+            .header-actions .btn-secondary {
+                flex-grow: 1; /* Make buttons expand to fill space */
+            }
+        }
+        
+        /* --- New Styling for Print/Clear Buttons in Prep View --- */
+        .prep-actions {
+            display: flex;
+            gap: 10px;
+            flex-direction: row; /* Default: horizontal */
+            justify-content: center;
+        }
+        .prep-actions .btn-secondary {
+             flex: 1; /* Make buttons share space equally */
+        }
+        @media (max-width: 768px) {
+            .prep-actions {
+                flex-direction: column; /* Stack vertically on mobile */
+            }
+        }
 
-/* Auto-suggestion Styles */
-.note-input-wrapper {
-  position: relative; /* Crucial for positioning the dropdown */
-}
 
-.suggestions-dropdown {
-  position: absolute;
-  top: calc(100% + 5px); /* Position below the input + a small gap */
-  left: 0;
-  right: 0;
-  background: var(--card);
-  border-radius: 10px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-  max-height: 120px;
-  overflow-y: auto;
-  z-index: 100; /* Ensure it's above other elements */
-  display: none; /* Hidden by default */
-  width: 100%; /* Ensure it spans the width of the input */
-}
+        /* --- MOBILE RESPONSIVENESS --- */
+        @media (max-width: 768px) {
+            body {
+                padding: 15px; /* Slightly reduced padding for smaller screens */
+            }
 
-.suggestions-dropdown div {
-  padding: 8px 12px;
-  cursor: pointer;
-}
+            .header {
+                flex-direction: column; /* Stack header items vertically */
+                align-items: center; /* Center items horizontally */
+                gap: 20px; /* Spacing between stacked header elements */
+            }
 
-.suggestions-dropdown div:hover {
-  background: #2a2a31;
-}
+            .header-top-row {
+                flex-direction: column; /* Stack app-title and nav-tabs vertically */
+                width: 100%; /* Ensure it takes full width for centering */
+                gap: 15px; /* Space between app-title and nav-tabs */
+                flex: auto; /* Reset flex grow on mobile */
+            }
 
-/* New CSS for the expense header and avatar */
-.expense-header-content {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px; /* Space between title and separator */
-  font-weight: 600; /* Make the title text bold like the original strong tag */
-}
+            .nav-tabs {
+                margin-right: 0; /* Remove auto margin to center tabs */
+                justify-content: center; /* Center the tabs within its container */
+                width: 100%; /* Allow nav-tabs to take full width */
+            }
 
-.expense-header-avatar {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  object-fit: cover; /* Ensure image covers the area nicely */
-}
+            /* .btn-secondary {  This rule is now overridden by more specific .header-actions .btn-secondary
+                width: 100%;
+                justify-content: center;
+            } */
 
-.expense-separator {
-  border-bottom: 1px solid #2a2a31;
-  margin-bottom: 10px; /* Space between separator and first expense item */
-}
-</style>
+            /* For tables that might overflow, min-width on table is often helpful,
+               but overflow-x: auto is already handling it. */
+            table {
+                min-width: unset; /* Remove min-width to allow shrinking if needed, handled by overflow */
+            }
+            th, td {
+                padding: 10px 8px; /* Slightly reduce padding in table cells */
+            }
+
+            .details-content {
+                padding: 10px 10px 10px 20px; /* Adjust padding for details row */
+                grid-template-columns: 1fr; /* Stack detail items vertically on very small screens */
+            }
+            .dashboard-header {
+                flex-direction: column;
+                align-items: flex-start; /* Align dashboard header items to start when stacked */
+                gap: 10px;
+            }
+            .dashboard-header h2, .dashboard-header select {
+                width: 100%; /* Make title and select full width */
+            }
+            .dist-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            .dist-header h2, .dist-header select {
+                width: 100%;
+            }
+        }
+    </style>
 </head>
 
 <body>
 <div class="container">
 
-<h1>Bills Overview</h1>
-<div class="balance" id="balanceText"></div>
+    <div class="header">
+        <div class="header-top-row">
+            <div class="app-title">
+                <i class="fa-solid fa-dumbbell"></i>
+                <i class="fa-solid fa-person-running"></i>
+                <i class="fa-solid fa-person-biking"></i>
+                <i class="fa-solid fa-person-swimming"></i>
+            </div>
 
-<div class="profiles">
-  <img src="assets/person001.png" id="francisBtn" class="profile active" onclick="selectPerson('francis')">
-  <img src="assets/person002.png" id="fionaBtn" class="profile" onclick="selectPerson('fiona')">
-</div>
-
-<!-- New: View Switcher -->
-<div class="view-switcher">
-  <button id="prevViewBtn" onclick="toggleViewMode()"><i class="fa-solid fa-chevron-left"></i></button>
-  <span id="currentViewText">Monthly View</span>
-  <button id="nextViewBtn" onclick="toggleViewMode()"><i class="fa-solid fa-chevron-right"></i></button>
-</div>
-
-<div class="card">
-  <div class="chart-wrapper">
-    <canvas id="billChart"></canvas>
-  </div>
-</div>
-
-<div class="card">
-  <div class="year-tabs" id="yearTabs"></div>
-  <div class="month-tabs" id="monthTabs"></div>
-</div>
-
-<div class="card">
-  <div class="form">
-    <input id="amountInput" type="number" step="0.01" placeholder="£ amount">
-    <div class="note-input-wrapper">
-      <input id="noteInput" type="text" placeholder="Description or brand">
-      <div id="suggestions" class="suggestions-dropdown"></div>
+            <div class="nav-tabs">
+                <button class="nav-btn active" onclick="switchView('tracker')">Tracker</button>
+                <button class="nav-btn" onclick="switchView('prep')">Workout Prep</button>
+            </div>
+        </div>
+        
+        <div class="header-actions">
+            <button class="btn-secondary" onclick="importFromJson()">
+                <i class="fa-solid fa-file-arrow-up"></i> Import
+            </button>
+            <button class="btn-secondary" onclick="exportToJson()">
+                <i class="fa-solid fa-file-arrow-down"></i> Export
+            </button>
+        </div>
     </div>
-    <select id="recurringInput">
-      <option value="no">One-off</option>
-      <option value="yes">Recurring</option>
-    </select>
-    <button onclick="addExpense()">Add</button>
-  </div>
-</div>
 
-<div class="card">
-  <!-- Changed to a div to hold avatar, text, and separator -->
-  <div id="expenseHeader"></div>
-  <div id="expenseList"></div>
-</div>
+    <!-- Hidden file input for import functionality -->
+    <input type="file" id="importFileInput" accept="application/json" style="display:none;">
 
-<div class="card export">
-  <button onclick="importJSON()">
-    <i class="fa-solid fa-file-arrow-up"></i> Import JSON
-  </button>
-  <button onclick="exportJSON()">
-    <i class="fa-solid fa-file-arrow-down"></i> Export JSON
-  </button>
-</div>
+    <!-- ========================= TRACKER VIEW ========================= -->
+    <div id="view-tracker" class="views-section visible">
+        <!-- LOG ACTIVITY CARD -->
+        <div class="card">
+            <h2>Log Activity</h2>
+            <form id="workoutForm">
+                <!-- Apply form-section-box to form-grid -->
+                <div class="form-grid form-section-box">
+                    <div class="form-group">
+                        <label>Date</label>
+                        <input type="date" id="date" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Activity</label>
+                        <select id="type" required>
+                            <option>Running</option>
+                            <option>Swimming</option>
+                            <option>Weights</option>
+                            <option>Strength</option>
+                            <option>Core</option>
+                            <option>Cycling</option>
+                            <option>Rowing</option>
+                            <option>Yoga</option>
+                            <option>Pilates</option>
+                            <option>HIIT</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Duration (min)</label>
+                        <input type="number" id="duration" min="1" required>
+                    </div>
+                </div>
+
+                <!-- Dynamic Fields - also apply form-section-box -->
+                <div id="dynamicFields" class="form-section-box">
+                    <div id="fields-running" class="field-group active">
+                        <input type="number" step="0.01" placeholder="Distance (km)" data-label="Distance" id="run-dist">
+                        <input type="number" step="0.01" placeholder="Pace (min/km)" data-label="Pace" id="run-pace">
+                        <input type="text" placeholder="Intervals (e.g. 5x1km)" data-label="Intervals">
+                    </div>
+                    <div id="fields-cycling" class="field-group">
+                        <input type="number" step="0.01" placeholder="Distance (km)" data-label="Distance">
+                        <input type="number" step="0.1" placeholder="Avg Speed (km/h)" data-label="Avg Speed">
+                    </div>
+                    <div id="fields-rowing" class="field-group">
+                        <input type="number" step="0.01" placeholder="Distance (km)" data-label="Distance">
+                        <input type="number" placeholder="Stroke rate" data-label="Stroke Rate">
+                    </div>
+                    <div id="fields-swimming" class="field-group">
+                        <input type="number" placeholder="Laps" data-label="Laps">
+                        <input type="number" value="25" placeholder="Pool size (m)" data-label="Pool Size">
+                    </div>
+                    
+                    <!-- Expanded Weights Section -->
+                    <div id="fields-weights" class="field-group">
+                        <select data-label="Exercise">
+                            <option value="">Select Exercise...</option>
+                            
+                            <optgroup label="Lower Body (Push / Squat)">
+                                <option>Back Squat</option>
+                                <option>Front Squat</option>
+                                <option>Goblet Squat</option>
+                                <option>Overhead Squat</option>
+                                <option>Bulgarian Split Squat</option>
+                                <option>Leg Press</option>
+                                <option>Hack Squat</option>
+                                <option>Lunges</option>
+                                <option>Step-ups</option>
+                            </optgroup>
+                            
+                            <optgroup label="Lower Body (Hinge / Posterior)">
+                                <option>Conventional Deadlift</option>
+                                <option>Romanian Deadlift</option>
+                                <option>Sumo Deadlift</option>
+                                <option>Trap Bar Deadlift</option>
+                                <option>Stiff-Legged Deadlift</option>
+                                <option>Good Mornings</option>
+                                <option>Hip Thrust / Glute Bridge</option>
+                                <option>Cable Pull-through</option>
+                            </optgroup>
+
+                            <optgroup label="Upper Body (Push)">
+                                <option>Bench Press</option>
+                                <option>Incline Bench Press</option>
+                                <option>Decline Bench Press</option>
+                                <option>Close-Grip Bench Press</option>
+                                <option>Dumbbell/Cable Fly</option>
+                                <option>Push-ups (Weighted)</option>
+                                <option>Machine Chest Press</option>
+                                <option>Overhead Press</option>
+                                <option>Seated DB Shoulder Press</option>
+                                <option>Arnold Press</option>
+                                <option>Push Press</option>
+                                <option>Lateral Raises</option>
+                            </optgroup>
+
+                            <optgroup label="Back / Pulling">
+                                <option>Bent-Over Row</option>
+                                <option>Single-Arm DB Row</option>
+                                <option>Pendlay Row</option>
+                                <option>Seated Cable Row</option>
+                                <option>T-Bar Row</option>
+                                <option>Lat Pulldown</option>
+                                <option>Pull-ups / Chin-ups</option>
+                                <option>Face Pulls</option>
+                                <option>Shrugs</option>
+                            </optgroup>
+
+                            <optgroup label="Arms">
+                                <option>Bicep Curl</option>
+                                <option>Hammer Curl</option>
+                                <option>Concentration Curl</option>
+                                <option>Cable Curl</option>
+                                <option>Tricep Extension</option>
+                                <option>Tricep Dips</option>
+                                <option>Tricep Pushdowns</option>
+                                <option>Kickbacks</option>
+                            </optgroup>
+
+                            <optgroup label="Core / Abs">
+                                <option>Weighted Plank</option>
+                                <option>Ab Wheel Rollout</option>
+                                <option>Cable Crunch</option>
+                                <option>Hanging Leg Raises</option>
+                                <option>Russian Twists</option>
+                                <option>Dead Bugs</option>
+                            </optgroup>
+                        </select>
+                        <input type="number" placeholder="Sets" data-label="Sets">
+                        <input type="number" placeholder="Reps" data-label="Reps">
+                        <input type="number" step="0.5" placeholder="Weight (kg)" data-label="Weight">
+                    </div>
+
+                    <div id="fields-strength" class="field-group">
+                        <select data-label="Exercise">
+                            <option value="">Select Strength Exercise...</option>
+                            
+                            <optgroup label="Lower Body – Squat Pattern (Quad Dominant)">
+                                <option>Low-Bar Back Squat</option>
+                                <option>High-Bar Back Squat</option>
+                                <option>Front Squat</option>
+                                <option>Paused Back Squat</option>
+                                <option>Box Squat</option>
+                                <option>Safety Bar Squat (SSB)</option>
+                                <option>Tempo Squat</option>
+                            </optgroup>
+                            
+                            <optgroup label="Upper Body – Horizontal Push (Bench Press Pattern)">
+                                <option>Competition Bench Press (Paused)</option>
+                                <option>Close-Grip Bench Press</option>
+                                <option>Paused Bench Press</option>
+                                <option>Board Press / Pin Press</option>
+                                <option>Floor Press</option>
+                                <option>Spoto Press</option>
+                            </optgroup>
+                            
+                            <optgroup label="Lower Body – Hinge Pattern (Deadlift)">
+                                <option>Conventional Deadlift</option>
+                                <option>Sumo Deadlift</option>
+                                <option>Deficit Deadlift</option>
+                                <option>Paused Deadlift</option>
+                                <option>Rack Pull</option>
+                                <option>Block Pull</option>
+                                <option>Trap Bar Deadlift</option>
+                            </optgroup>
+                            
+                            <optgroup label="Upper Body – Vertical Push (Overhead Press Pattern)">
+                                <option>Strict Standing Overhead Press / Military Press</option>
+                                <option>Push Press</option>
+                                <option>Seated Overhead Press</option>
+                            </optgroup>
+                            
+                            <optgroup label="Pulling / Back Strength (Assistance for Balance)">
+                                <option>Weighted Pull-ups / Chin-ups</option>
+                                <option>Barbell Bent-Over Row</option>
+                                <option>Pendlay Row</option>
+                                <option>Heavy Barbell Shrugs</option>
+                            </optgroup>
+                            
+                            <optgroup label="Core / Grip / Assistance for Strength">
+                                <option>Heavy Ab Wheel Rollouts</option>
+                                <option>Weighted Planks</option>
+                                <option>Farmer's Walks / Heavy Carries</option>
+                            </optgroup>
+                        </select>
+
+                        <input type="number" placeholder="Sets" data-label="Sets">
+                        <input type="number" placeholder="Reps" data-label="Reps">
+                        <input type="number" step="0.5" placeholder="Weight (kg)" data-label="Weight">
+                    </div>
+
+                    <div id="fields-core" class="field-group">
+                        <input type="text" placeholder="Exercise name" data-label="Exercise">
+                        <input type="number" placeholder="Sets" data-label="Sets">
+                        <input type="text" placeholder="Reps / Time" data-label="Reps/Time">
+                    </div>
+
+                    <div id="fields-yoga" class="field-group">
+                        <input type="text" placeholder="Style" data-label="Style">
+                    </div>
+                    <div id="fields-pilates" class="field-group">
+                        <input type="text" placeholder="Focus" data-label="Focus">
+                    </div>
+                    <div id="fields-hiit" class="field-group">
+                        <input type="text" placeholder="Format" data-label="Format">
+                        <input type="number" placeholder="Rounds" data-label="Rounds">
+                    </div>
+                    <div id="fields-other" class="field-group">
+                        <input type="text" placeholder="Style or focus" data-label="Details">
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom:16px;">
+                    <label>Notes</label>
+                    <textarea id="notes" rows="2"></textarea>
+                </div>
+
+                <button class="btn-primary">Log Workout</button>
+            </form>
+        </div>
+
+        <!-- HISTORY CARD -->
+        <div class="card">
+            <h2>Recent History</h2>
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width:40px;"></th>
+                            <th>Date / Activity</th>
+                            <th>Duration</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="workoutList"></tbody>
+                </table>
+                <div id="emptyState" class="empty">No workouts yet</div>
+            </div>
+        </div>
+
+        <!-- DISTRIBUTION CARD -->
+        <div class="card">
+            <div class="dist-header">
+                <h2 style="margin:0;">Workout Distribution</h2>
+                <select id="distYearSelect" style="width: auto; margin:0;"></select>
+            </div>
+            <div class="dist-wrapper">
+                <canvas id="distChart"></canvas>
+                <div class="dist-legend" id="distLegend"></div>
+            </div>
+        </div>
+
+        <!-- ANALYTICS CARD -->
+        <div class="card">
+            <div class="dashboard-header">
+                <h2>Performance Analytics</h2>
+                <select id="statsTypeSelect" style="width: auto;">
+                    <option value="Running">Running</option>
+                    <option value="Cycling">Cycling</option>
+                    <option value="Weights">Weights</option>
+                    <option value="Swimming">Swimming</option>
+                    <option value="Rowing">Rowing</option>
+                </select>
+            </div>
+
+            <div class="stat-grid" id="statCards"></div>
+            <canvas id="statsChart"></canvas>
+
+            <h3>Monthly Breakdown</h3>
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead id="statsTableHead"></thead>
+                    <tbody id="statsTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================= WORKOUT PREP VIEW ========================= -->
+    <div id="view-prep" class="views-section">
+        <div class="card">
+            <div class="dashboard-header">
+                <h2>Create Workout Plan</h2>
+                <select id="prep-type" onchange="resetPrep()" style="width:auto;">
+                    <option value="Running">Running</option>
+                    <option value="Cycling">Cycling</option>
+                    <option value="Rowing">Rowing</option>
+                </select>
+            </div>
+
+            <div class="builder-grid">
+                <!-- Left: The Plan -->
+                <div>
+                    <div class="summary-box">
+                        <div id="prep-total-duration" class="summary-total">0</div>
+                        <div class="summary-label">TOTAL MINUTES</div>
+                        <div id="prep-total-distance" style="font-size:12px; margin-top:5px; opacity:0.8">0 km est.</div>
+                    </div>
+                    
+                    <ul id="prep-list" class="step-list">
+                        <!-- Steps go here -->
+                        <div style="text-align:center; padding:30px; color:var(--text-secondary); border: 2px dashed var(--border-color); border-radius:12px;">
+                            Start adding steps to build your workout
+                        </div>
+                    </ul>
+                </div>
+
+                <!-- Right: The Controls -->
+                <div>
+                    <div class="add-panel">
+                        <div class="add-title">Add a Step</div>
+                        
+                        <div class="form-group" style="margin-bottom:12px;">
+                            <label>Phase</label>
+                            <select id="step-phase">
+                                <option value="warmup">Warm Up</option>
+                                <option value="work">Active Interval / Run</option>
+                                <option value="rest">Recovery / Rest</option>
+                                <option value="cooldown">Cool Down</option>
+                            </select>
+                        </div>
+
+                        <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:12px;">
+                            <div class="form-group">
+                                <label>Target Type</label>
+                                <select id="step-target-type" onchange="togglePrepInputs()">
+                                    <option value="time">Time</option>
+                                    <option value="dist">Distance</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label id="step-val-label">Duration (min)</label>
+                                <input type="number" id="step-val" value="10">
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom:16px;">
+                            <label>Intensity / Pace</label>
+                            <input type="text" id="step-intensity" placeholder="e.g. 5:30/km, Easy, Sprint">
+                        </div>
+
+                        <button class="btn-add-step" onclick="addPrepStep()">
+                            <i class="fa-solid fa-plus"></i> Add to Plan
+                        </button>
+                    </div>
+
+                    <div class="add-panel" style="margin-top:20px; border-style:solid; background:var(--card-bg);">
+                         <div class="add-title">Actions</div>
+                         <div class="prep-actions">
+                             <button class="btn-secondary" onclick="window.print()">
+                                <i class="fa-solid fa-print"></i> Print / Save PDF
+                             </button>
+                             <button class="btn-secondary btn-danger-text" onclick="resetPrep()">
+                                Clear All
+                             </button>
+                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
 </div>
 
 <script>
-const MONTHS = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+// --- GLOBAL NAVIGATION ---
+function switchView(viewName) {
+    // Buttons
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    if(viewName === 'tracker') document.querySelectorAll('.nav-btn')[0].classList.add('active');
+    else document.querySelectorAll('.nav-btn')[1].classList.add('active');
 
-// Canonical list of brands for auto-suggestions, sorted alphabetically
-const SUGGESTION_BRANDS = [
-    "affinity water", "amazon", "b&q", "barclays", "british airways", "costco", "council tax", "eurostar",
-    "hotel", "hsbc", "hyperoptic", "iberia", "insite energy", "john lewis", "lidl", "lner", "m&s",
-    "octopus energy", "renfe", "revolut", "ryanair", "sainsbury's", "tfl", "accommodation"
-].sort();
-
-// Rules for logo detection (more comprehensive, order might matter for precedence)
-const BRAND_LOGO_RULES = [
-  { keywords: ["affinity water"], logo: "assets/logos/affinitywater.png" },
-  { keywords: ["amazon"], logo: "assets/logos/amazon.png" },
-  { keywords: ["b&q"], logo: "assets/logos/bandq.png" },
-  { keywords: ["barclays"], logo: "assets/logos/barclays.png" },
-  { keywords: ["british airways"], logo: "assets/logos/britishairways.png" },
-  { keywords: ["costco"], logo: "assets/logos/costco.png" },
-  { keywords: ["hyperoptic"], logo: "assets/logos/hyperoptic.png" },
-  { keywords: ["hsbc"], logo: "assets/logos/hsbc.png" },
-  { keywords: ["iberia"], logo: "assets/logos/iberia.png" },
-  { keywords: ["insite energy"], logo: "assets/logos/insiteenergy.png" },
-  { keywords: ["john lewis"], logo: "assets/logos/johnlewis.png" },
-  { keywords: ["lidl"], logo: "assets/logos/lidl.png" },
-  { keywords: ["lner"], logo: "assets/logos/lner.png" },
-  { keywords: ["m&s"], logo: "assets/logos/mands.png" }, // Handles M&S
-  { keywords: ["octopus energy"], logo: "assets/logos/octopusenergy.png" }, // Handles Octopus Energy
-  { keywords: ["renfe"], logo: "assets/logos/renfe.png" },
-  { keywords: ["revolut"], logo: "assets/logos/revolut.png" },
-  { keywords: ["ryanair"], logo: "assets/logos/ryanair.png" },
-  { keywords: ["sainsbury's"], logo: "assets/logos/sainsburys.png" },
-  { keywords: ["tfl"], logo: "assets/logos/tfl.png" }, // Handles TFL
-  { keywords: ["eurostar"], logo: "assets/logos/eurostar.png" },
-  // Specific aliases for Council Tax (prioritize more specific matches if possible)
-  { keywords: ["council tax", "council-tax", "brent council", "brent"], logo: "assets/logos/brent.png" },
-  // Generic catch-all for hotels/accommodation (place after specific hotel brands if they were ever added)
-  { keywords: ["hotel", "accommodation", "booking.com"], logo: "assets/logos/booking.png" }
-];
-
-
-// DOM elements for suggestions
-const noteInput = document.getElementById('noteInput');
-const suggestionsDiv = document.getElementById('suggestions');
-const yearTabsDiv = document.getElementById('yearTabs'); // New DOM element for year tabs
-const expenseHeaderDiv = document.getElementById('expenseHeader'); // Get the new expense header div
-const balanceTextDiv = document.getElementById('balanceText'); // Get the balance text div for dynamic content
-const currentViewTextSpan = document.getElementById('currentViewText'); // Get the span for view mode text
-
-const expenseChartInstances = {}; // Stores Chart.js instances for individual expenses by originalIndex
-
-// Auto-suggestion functions
-function showSuggestions() {
-  const inputValue = noteInput.value.toLowerCase();
-  suggestionsDiv.innerHTML = ''; // Clear previous suggestions
-
-  // Only show suggestions if there's input or if the input is focused and the dropdown is not explicitly hidden
-  if (inputValue.length === 0 && document.activeElement !== noteInput) {
-    suggestionsDiv.style.display = 'none';
-    return;
-  }
-
-  const matchingBrands = SUGGESTION_BRANDS.filter(brand =>
-    brand.includes(inputValue)
-  );
-
-  if (matchingBrands.length > 0) {
-    matchingBrands.forEach(brand => {
-      const suggestionItem = document.createElement('div');
-      // Capitalize for display, e.g., "affinity water" -> "Affinity Water"
-      // Special handling for M&S, B&Q, HSBC, LNER, and TFL
-      let displayText = brand.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-      if (brand === "m&s") displayText = "M&S";
-      if (brand === "b&q") displayText = "B&Q";
-      if (brand === "hsbc") displayText = "HSBC"; // Make HSBC uppercase
-      if (brand === "lner") displayText = "LNER"; // Make LNER uppercase
-      if (brand === "tfl") displayText = "TFL";   // Make TFL uppercase
-
-      suggestionItem.textContent = displayText;
-      suggestionItem.onmousedown = (event) => { // Use mousedown and preventDefault
-        event.preventDefault(); // Prevents the input from losing focus
-        selectSuggestion(brand);
-      };
-      suggestionsDiv.appendChild(suggestionItem);
-    });
-    suggestionsDiv.style.display = 'block';
-  } else {
-    suggestionsDiv.style.display = 'none';
-  }
+    // Views
+    document.querySelectorAll('.views-section').forEach(v => v.classList.remove('visible'));
+    document.getElementById('view-' + viewName).classList.add('visible');
 }
 
-function selectSuggestion(brandName) {
-  // Set input to selected capitalized brand (more robust capitalization)
-  let capitalizedBrand = brandName.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-  if (brandName === "m&s") capitalizedBrand = "M&S";
-  if (brandName === "b&q") capitalizedBrand = "B&Q";
-  if (brandName === "hsbc") capitalizedBrand = "HSBC"; // Make HSBC uppercase
-  if (brandName === "lner") capitalizedBrand = "LNER"; // Make LNER uppercase
-  if (brandName === "tfl") capitalizedBrand = "TFL";   // Make TFL uppercase
-
-  noteInput.value = capitalizedBrand;
-  suggestionsDiv.style.display = 'none';
-  // No need to call focus() here, as preventDefault on mousedown kept focus
+// --- DATA INITIALIZATION ---
+let workouts = [];
+try { 
+    // Attempt to parse existing data, default to empty array if not found or parsing fails
+    workouts = JSON.parse(localStorage.getItem('smartWorkouts')) || []; 
+} catch (e) { 
+    console.error("Error parsing localStorage data:", e);
+    workouts = []; // Fallback to empty array on error
 }
 
-function hideSuggestions() {
-  // Delay hiding to allow click events on suggestions to register
-  setTimeout(() => {
-    // Only hide if the input does not have focus AND the dropdown itself is not focused
-    if (document.activeElement !== noteInput && !suggestionsDiv.contains(document.activeElement)) {
-      suggestionsDiv.style.display = 'none';
-    }
-  }, 100);
-}
-
-// Attach event listeners
-noteInput.addEventListener('input', showSuggestions);
-noteInput.addEventListener('focus', showSuggestions); // Show suggestions if input is focused and has text
-noteInput.addEventListener('blur', hideSuggestions);
+// --- DOM ELEMENTS (TRACKER) ---
+const form = document.getElementById('workoutForm');
+const typeSelect = document.getElementById('type');
+const statsTypeSelect = document.getElementById('statsTypeSelect');
+const distYearSelect = document.getElementById('distYearSelect');
+const canvas = document.getElementById('statsChart');
+const ctx = canvas.getContext('2d');
+const distCanvas = document.getElementById('distChart');
+const distCtx = distCanvas.getContext('2d');
+const importFileInput = document.getElementById('importFileInput');
 
 
-function normalizeMonthKey(monthKey) {
-  if (monthKey && monthKey.match(/^\d{4}-\d{2}$/)) { // e.g., "2026-01"
-    const [year, monthNum] = monthKey.split('-');
-    const monthIndex = parseInt(monthNum, 10) - 1; // 0-indexed month
-    if (monthIndex >= 0 && monthIndex < 12) {
-      return `${year}-${MONTHS[monthIndex]}`;
-    }
-  }
-  return monthKey; // Return as is if already correct or unparseable
-}
+// --- RUNNING AUTO CALC ELEMENTS ---
+const globalDuration = document.getElementById('duration');
+const runDistInput = document.getElementById('run-dist');
+const runPaceInput = document.getElementById('run-pace'); 
 
-function currentMonthKey() {
-  const d = new Date();
-  return `${d.getFullYear()}-${MONTHS[d.getMonth()]}`;
-}
-
-// Initialize activeYear and activeMonth
-const today = new Date();
-let activeYear = today.getFullYear();
-let activeMonth = `${activeYear}-${MONTHS[today.getMonth()]}`;
-
-let activePerson = "francis";
-let viewMode = 'monthly'; // 'monthly' or 'annual'
-
-
-const data = JSON.parse(localStorage.getItem("billData")) || {
-  francis: [],
-  fiona: [],
-  settlements: {} // Initialize settlements here
+// Color Palette
+const workoutColors = {
+    'Running': '#FF9500', 'Cycling': '#FF9500', 
+    'Swimming': '#007AFF', 'Rowing': '#007AFF',
+    'Weights': '#AF52DE', 'Strength': '#AF52DE', 'Core': '#AF52DE',
+    'Yoga': '#34C759', 'Pilates': '#34C759', 'HIIT': '#34C759', 'Other': '#8e8e93'
 };
-// Ensure settlements object exists even if loaded from older data structure
-if (!data.settlements) {
-    data.settlements = {};
-    save(); // Save the updated structure to localStorage
+
+document.getElementById('date').valueAsDate = new Date();
+
+// --- EVENT LISTENERS ---
+typeSelect.addEventListener('change', updateFields);
+form.addEventListener('submit', addWorkout);
+statsTypeSelect.addEventListener('change', updateDashboard);
+distYearSelect.addEventListener('change', drawDistribution);
+globalDuration.addEventListener('input', calcPace);
+runDistInput.addEventListener('input', calcPace);
+importFileInput.addEventListener('change', handleImportFile);
+
+
+// --- INITIAL RENDER ---
+updateFields();
+renderHistory();
+updateDashboard();
+initDistribution();
+
+// --- FUNCTIONS ---
+function updateFields() {
+    document.querySelectorAll('.field-group').forEach(g => g.classList.remove('active'));
+    const group = document.getElementById('fields-' + typeSelect.value.toLowerCase());
+    if (group) group.classList.add('active');
 }
 
+function addWorkout(e) {
+    e.preventDefault();
+    const dateInput = document.getElementById('date');
+    const durationInput = document.getElementById('duration');
+    const notesInput = document.getElementById('notes');
 
-// Migrate old month formats to the new YYYY-MMM format on load
-function migrateData() {
-  let changed = false;
-  ["francis", "fiona"].forEach(p => {
-    data[p].forEach(e => {
-      const normalized = normalizeMonthKey(e.month);
-      if (normalized !== e.month) {
-        e.month = normalized;
-        changed = true;
-      }
+    let details = [];
+    const activeGroup = document.querySelector('.field-group.active');
+    if (activeGroup) {
+        const inputs = activeGroup.querySelectorAll('input, select');
+        inputs.forEach(input => {
+            if (input.value && input.value.trim() !== "") {
+                let label = input.getAttribute('data-label') || input.placeholder || "Detail";
+                label = label.replace(/\s*\(.*?\)\s*/g, ''); 
+                let value = input.value;
+                if(input.placeholder && input.placeholder.includes('km')) value += " km";
+                if(input.placeholder && input.placeholder.includes('kg')) value += " kg";
+                if(input.placeholder && input.placeholder.includes('m)')) value += " m";
+                details.push({ label: label, value: value });
+            }
+        });
+    }
+
+    workouts.unshift({
+        id: Date.now(),
+        date: dateInput.value,
+        type: typeSelect.value,
+        duration: Number(durationInput.value),
+        notes: notesInput.value,
+        details: details
     });
-  });
-  if (changed) {
-    save(); // Save the migrated data back to localStorage
-    console.log("Migrated old month formats in localStorage.");
-  }
+
+    workouts.sort((a, b) => new Date(b.date) - new Date(a.date));
+    localStorage.setItem('smartWorkouts', JSON.stringify(workouts));
+    
+    form.reset();
+    dateInput.valueAsDate = new Date();
+    updateFields();
+    renderHistory();
+    updateDashboard();
+    initDistribution();
 }
 
-// Function to ensure data integrity for baseId and recurring flags
-function normalizeExpenseData() {
-    let changed = false;
-    ["francis", "fiona"].forEach(p => {
-        // Map to store baseId for recurring expenses with the same note
-        const recurringNoteToBaseIdMap = {};
+function remove(id) {
+    if(!confirm("Delete this workout?")) return;
+    const i = workouts.findIndex(w => w.id === id);
+    if (i > -1) {
+        workouts.splice(i, 1);
+        localStorage.setItem('smartWorkouts', JSON.stringify(workouts));
+        renderHistory();
+        updateDashboard();
+        initDistribution();
+    }
+}
 
-        data[p].forEach(e => {
-            // Ensure `recurring` is a proper boolean
-            const wasRecurringString = e.recurring === "yes";
-            e.recurring = (e.recurring === true || wasRecurringString);
-            if (wasRecurringString) changed = true; // Mark as changed if we converted "yes"
+// --- HISTORY RENDER ---
+function renderHistory() {
+    const list = document.getElementById('workoutList');
+    const emptyState = document.getElementById('emptyState');
+    list.innerHTML = '';
+    
+    const displayWorkouts = workouts.slice(0, 50); 
+    emptyState.style.display = displayWorkouts.length ? 'none' : 'block';
 
-            if (e.recurring) {
-                if (!e.baseId) {
-                    // If no baseId, check if we've seen this note as recurring before
-                    if (recurringNoteToBaseIdMap[e.note]) {
-                        e.baseId = recurringNoteToBaseIdMap[e.note];
-                    } else {
-                        e.baseId = crypto.randomUUID();
-                        recurringNoteToBaseIdMap[e.note] = e.baseId;
-                    }
-                    changed = true;
-                } else {
-                    // If it has a baseId, ensure it's also in the map for future matching
-                    recurringNoteToBaseIdMap[e.note] = e.baseId;
+    const groups = {};
+    displayWorkouts.forEach(w => {
+        if (!groups[w.date]) groups[w.date] = [];
+        groups[w.date].push(w);
+    });
+
+    Object.keys(groups).forEach(dateKey => {
+        const dayWorkouts = groups[dateKey];
+        const dateObj = new Date(dateKey);
+        const dateStr = dateObj.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+        const dayDuration = dayWorkouts.reduce((sum, w) => sum + w.duration, 0);
+
+        const dateRow = document.createElement('tr');
+        dateRow.className = 'date-row';
+        dateRow.innerHTML = `
+            <td style="text-align:center;"><i class="fa-solid fa-chevron-right"></i></td>
+            <td>
+                ${dateStr} 
+                <span style="font-weight:400; color:var(--text-secondary); font-size:12px;">
+                   • ${dayWorkouts.length} Workout${dayWorkouts.length>1?'s':''}
+                </span>
+            </td>
+            <td><strong>${dayDuration} min</strong></td>
+            <td></td>
+        `;
+        
+        dateRow.onclick = function() {
+            this.classList.toggle('expanded');
+            document.querySelectorAll(`.group-${dateKey}`).forEach(row => row.classList.toggle('visible'));
+            const icon = this.querySelector('i');
+            icon.style.transform = icon.style.transform === 'rotate(90deg)' ? 'rotate(0deg)' : 'rotate(90deg)';
+        };
+        list.appendChild(dateRow);
+
+        dayWorkouts.forEach(w => {
+            const tr = document.createElement('tr');
+            tr.className = `workout-row group-${dateKey}`;
+            
+            tr.innerHTML = `
+                <td></td>
+                <td style="padding-left:12px;">
+                    <span class="tag type-${w.type.toLowerCase()}">${w.type}</span>
+                    ${w.notes ? '<i class="fa-regular fa-angles-right" style="color:var(--primary);margin-left:8px;font-size:12px;"></i>' : ''} 
+                </td>
+                <td>${w.duration} min</td>
+                <td>
+                    <button class="bin" onclick="remove(${w.id}); event.stopPropagation();">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </td>
+            `;
+            
+            tr.onclick = function() {
+                const det = document.getElementById(`details-${w.id}`);
+                if(det) det.classList.toggle('visible');
+            };
+            list.appendChild(tr);
+
+            if ((w.details && w.details.length) || w.notes) {
+                const dTr = document.createElement('tr');
+                dTr.id = `details-${w.id}`;
+                dTr.className = 'details-row';
+                let html = '<div class="details-content">';
+                if(w.details) w.details.forEach(d => html += `<div><b>${d.label}:</b> ${d.value}</div>`);
+                if(w.notes) html += `<div style="grid-column:1/-1; font-style:italic;">"${w.notes}"</div>`;
+                html += '</div>';
+                dTr.innerHTML = `<td colspan="4" style="padding:0">${html}</td>`;
+                list.appendChild(dTr);
+            }
+        });
+    });
+}
+
+// --- DISTRIBUTION CHART ---
+function initDistribution() {
+    const years = [...new Set(workouts.map(w => new Date(w.date).getFullYear()))];
+    const currentYear = new Date().getFullYear();
+    // Ensure current year is always an option if there's no data for it yet
+    if(!years.includes(currentYear)) years.push(currentYear); 
+    years.sort((a,b) => b - a);
+
+    const oldVal = distYearSelect.value;
+    distYearSelect.innerHTML = '';
+    years.forEach(y => {
+        const opt = document.createElement('option');
+        opt.value = y;
+        opt.text = y;
+        distYearSelect.appendChild(opt);
+    });
+
+    if(years.includes(Number(oldVal))) distYearSelect.value = oldVal;
+    drawDistribution();
+}
+
+function drawDistribution() {
+    const year = Number(distYearSelect.value);
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    
+    const yearWorkouts = workouts.filter(w => new Date(w.date).getFullYear() === year);
+    
+    const monthData = Array(12).fill(null).map(() => ({ total: 0, types: {} }));
+    const yearTotals = {}; 
+
+    yearWorkouts.forEach(w => {
+        const mIndex = new Date(w.date).getMonth();
+        const type = w.type;
+        monthData[mIndex].total++;
+        monthData[mIndex].types[type] = (monthData[mIndex].types[type] || 0) + 1;
+        yearTotals[type] = (yearTotals[type] || 0) + 1;
+    });
+
+    const dpr = window.devicePixelRatio || 1;
+    const rect = distCanvas.getBoundingClientRect();
+    distCanvas.width = rect.width * dpr;
+    distCanvas.height = 320 * dpr;
+    distCtx.scale(dpr, dpr);
+    distCtx.clearRect(0, 0, rect.width, 320);
+
+    const pad = { left: 40, right: 20, top: 20, bottom: 20 };
+    const chartW = rect.width - pad.left - pad.right;
+    const chartH = 320 - pad.top - pad.bottom;
+    const rowH = chartH / 12;
+    
+    const maxMonthly = Math.max(...monthData.map(m => m.total), 1);
+    
+    distCtx.beginPath();
+    distCtx.strokeStyle = 'rgba(128,128,128,0.2)';
+    distCtx.moveTo(pad.left, pad.top);
+    distCtx.lineTo(pad.left, 320 - pad.bottom);
+    distCtx.stroke();
+
+    months.forEach((m, i) => {
+        const y = pad.top + (i * rowH);
+        const barY = y + (rowH * 0.2);
+        const barH = rowH * 0.6;
+        
+        distCtx.fillStyle = '#8e8e93';
+        distCtx.font = '11px -apple-system';
+        distCtx.textAlign = 'right';
+        distCtx.textBaseline = 'middle';
+        distCtx.fillText(m, pad.left - 8, y + (rowH/2));
+
+        let currentX = pad.left;
+        const types = Object.keys(monthData[i].types).sort();
+        
+        types.forEach(type => {
+            const count = monthData[i].types[type];
+            const width = (count / maxMonthly) * chartW;
+            const color = workoutColors[type] || '#8e8e93';
+
+            distCtx.fillStyle = color;
+            distCtx.fillRect(currentX, barY, width, barH);
+            
+            distCtx.fillStyle = '#fff'; 
+            distCtx.fillRect(currentX + width - 1, barY, 1, barH);
+
+            currentX += width;
+        });
+
+        if(monthData[i].total > 0) {
+            distCtx.fillStyle = '#8e8e93';
+            distCtx.textAlign = 'left';
+            distCtx.fillText(monthData[i].total, currentX + 5, barY + barH/2);
+        }
+    });
+
+    const legendEl = document.getElementById('distLegend');
+    legendEl.innerHTML = '';
+    
+    const sortedTypes = Object.keys(yearTotals).sort((a,b) => yearTotals[b] - yearTotals[a]);
+    const totalYearCount = yearWorkouts.length;
+
+    if (totalYearCount === 0) {
+        legendEl.innerHTML = '<div style="color:var(--text-secondary); width:100%; text-align:center;">No data for selected year</div>';
+        return;
+    }
+
+    sortedTypes.forEach(type => {
+        const count = yearTotals[type];
+        const percent = Math.round((count / totalYearCount) * 100);
+        const color = workoutColors[type] || '#8e8e93';
+        
+        legendEl.innerHTML += `
+            <div class="legend-item">
+                <div class="legend-dot" style="background-color:${color}"></div>
+                <div class="legend-info">
+                    <span class="legend-name">${type}</span>
+                    <span class="legend-stats">${count} (${percent}%)</span>
+                </div>
+            </div>
+        `;
+    });
+}
+
+// --- ANALYTICS ENGINE ---
+function parseVal(str) {
+    if(!str) return 0;
+    const match = String(str).match(/[\d\.]+/); // Ensure str is a string for .match
+    return match ? parseFloat(match[0]) : 0;
+}
+
+function getDetail(w, labelPart) {
+    if(!w.details) return 0;
+    const found = w.details.find(d => d.label.toLowerCase().includes(labelPart.toLowerCase()));
+    return found ? parseVal(found.value) : 0;
+}
+
+function updateDashboard() {
+    const type = statsTypeSelect.value;
+    const filtered = workouts.filter(w => w.type === type).reverse();
+    
+    const byMonth = {};
+    let totalDist = 0;
+    let totalDur = 0;
+    let totalSets = 0;
+    let weightSum = 0; 
+    let weightCount = 0;
+    let speedSum = 0;
+    let speedCount = 0;
+
+    filtered.forEach(w => {
+        const d = new Date(w.date);
+        const monthKey = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+        
+        if(!byMonth[monthKey]) byMonth[monthKey] = { count:0, dur:0, dist:0, speedAcc:0, speedN:0, sets:0, weightAcc:0, weightN:0 };
+        
+        const dist = getDetail(w, 'Distance'); 
+        const speed = getDetail(w, 'Speed'); 
+        const sets = getDetail(w, 'Sets');
+        const weight = getDetail(w, 'Weight');
+        
+        byMonth[monthKey].count++;
+        byMonth[monthKey].dur += w.duration;
+        byMonth[monthKey].dist += dist;
+        byMonth[monthKey].sets += sets;
+        if(speed > 0) { byMonth[monthKey].speedAcc += speed; byMonth[monthKey].speedN++; }
+        if(weight > 0) { byMonth[monthKey].weightAcc += weight; byMonth[monthKey].weightN++; }
+
+        totalDur += w.duration;
+        totalDist += dist;
+        totalSets += sets;
+        if(speed > 0) { speedSum += speed; speedCount++; }
+        if(weight > 0) { weightSum += weight; weightCount++; }
+    });
+
+    const cardContainer = document.getElementById('statCards');
+    cardContainer.innerHTML = '';
+    
+    function createCard(color, label, value, unit) {
+        return `<div class="stat-card ${color}"><div class="stat-label">${label}</div><div><span class="stat-value">${value}</span> <span class="stat-unit">${unit}</span></div></div>`;
+    }
+
+    if(type === 'Running' || type === 'Cycling' || type === 'Rowing' || type === 'Swimming') {
+        const unit = (type==='Swimming') ? 'laps' : 'km';
+        const distVal = (type==='Swimming') ? totalDist : totalDist.toFixed(1);
+        const avgSpeed = speedCount ? (speedSum/speedCount).toFixed(1) : '-';
+        
+        cardContainer.innerHTML += createCard('orange', 'Total Distance', distVal, unit);
+        cardContainer.innerHTML += createCard('blue', 'Total Time', Math.round(totalDur/60), 'hours');
+        if(type !== 'Swimming') cardContainer.innerHTML += createCard('green', 'Avg Speed', avgSpeed, 'km/h');
+    } 
+    else if (type === 'Weights' || type === 'Strength') {
+        const avgWeight = weightCount ? (weightSum/weightCount).toFixed(1) : '-';
+        cardContainer.innerHTML += createCard('purple', 'Total Sets', totalSets, 'sets');
+        cardContainer.innerHTML += createCard('blue', 'Avg Weight', avgWeight, 'kg');
+        cardContainer.innerHTML += createCard('gray', 'Workouts', filtered.length, 'sessions');
+    } 
+    else {
+        cardContainer.innerHTML += createCard('green', 'Total Time', totalDur, 'min');
+        cardContainer.innerHTML += createCard('gray', 'Workouts', filtered.length, 'count');
+    }
+
+    const tHead = document.getElementById('statsTableHead');
+    const tBody = document.getElementById('statsTableBody');
+    tBody.innerHTML = '';
+
+    if(type === 'Running' || type === 'Cycling' || type === 'Rowing') {
+        tHead.innerHTML = `<tr><th>Month</th><th>Distance</th><th>Avg Speed</th><th>Time</th></tr>`;
+        Object.keys(byMonth).sort().reverse().forEach(k => {
+            const m = byMonth[k];
+            const avgSp = m.speedN ? (m.speedAcc/m.speedN).toFixed(1) : '-';
+            tBody.innerHTML += `<tr><td>${k}</td><td>${m.dist.toFixed(1)} km</td><td>${avgSp} km/h</td><td>${m.dur} min</td></tr>`;
+        });
+    } else if (type === 'Weights' || type === 'Strength') {
+        tHead.innerHTML = `<tr><th>Month</th><th>Total Sets</th><th>Avg Weight</th><th>Time</th></tr>`;
+        Object.keys(byMonth).sort().reverse().forEach(k => {
+            const m = byMonth[k];
+            const avgW = m.weightN ? (m.weightAcc/m.weightN).toFixed(1) : '-';
+            tBody.innerHTML += `<tr><td>${k}</td><td>${m.sets}</td><td>${avgW} kg</td><td>${m.dur} min</td></tr>`;
+        });
+    } else {
+        tHead.innerHTML = `<tr><th>Month</th><th>Workouts</th><th>Total Time</th></tr>`;
+        Object.keys(byMonth).sort().reverse().forEach(k => {
+             const m = byMonth[k];
+             tBody.innerHTML += `<tr><td>${k}</td><td>${m.count}</td><td>${m.dur} min</td></tr>`;
+        });
+    }
+
+    drawSpecificChart(byMonth, type);
+}
+
+function drawSpecificChart(dataObj, type) {
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0,0, rect.width, rect.height);
+
+    const keys = Object.keys(dataObj).sort().slice(-6); 
+    if(!keys.length) return;
+
+    const width = rect.width;
+    const height = rect.height;
+    const pad = {top:20, bottom:30, left:40, right:10};
+
+    let getValue;
+    let color;
+
+    if(['Running','Cycling','Rowing'].includes(type)) {
+        getValue = (k) => dataObj[k].dist;
+        color = '#FF9500';
+    } else if (type === 'Weights' || type === 'Strength') {
+        getValue = (k) => dataObj[k].sets;
+        color = '#AF52DE';
+    } else {
+        getValue = (k) => dataObj[k].dur;
+        color = '#34C759';
+    }
+
+    const values = keys.map(k => getValue(k));
+    const maxVal = Math.max(...values, 1) * 1.2;
+
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(128,128,128,0.2)';
+    ctx.moveTo(pad.left, pad.top);
+    ctx.lineTo(pad.left, height-pad.bottom);
+    ctx.lineTo(width, height-pad.bottom);
+    ctx.stroke();
+
+    const slotW = (width - pad.left - pad.right) / keys.length;
+    const barW = slotW * 0.5;
+
+    keys.forEach((k, i) => {
+        const val = values[i];
+        const barH = (val / maxVal) * (height - pad.top - pad.bottom);
+        const x = pad.left + (i * slotW) + (slotW/2 - barW/2);
+        const y = height - pad.bottom - barH;
+
+        const grd = ctx.createLinearGradient(0, y, 0, height-pad.bottom);
+        grd.addColorStop(0, color);
+        grd.addColorStop(1, color+'44');
+        ctx.fillStyle = grd;
+        ctx.fillRect(x, y, barW, barH);
+
+        ctx.fillStyle = '#1d1d1f';
+        ctx.font = 'bold 10px sans-serif';
+        ctx.textAlign = 'center';
+        if(val > 0) ctx.fillText(Math.round(val), x + barW/2, y - 5);
+
+        ctx.fillStyle = '#8e8e93';
+        ctx.font = '10px sans-serif';
+        ctx.fillText(k.split('-')[1], x + barW/2, height - pad.bottom + 12);
+    });
+}
+
+
+// --- New: Export/Import Functions ---
+
+function exportToJson() {
+    const dataStr = JSON.stringify(workouts, null, 2); // null, 2 for pretty printing
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'smart_workout_data.json';
+    document.body.appendChild(a); // Append to body to make it clickable in all browsers
+    a.click();
+    document.body.removeChild(a); // Clean up
+    URL.revokeObjectURL(url); // Release the URL object
+}
+
+function importFromJson() {
+    importFileInput.click(); // Trigger click on the hidden file input
+}
+
+function handleImportFile(event) {
+    const file = event.target.files[0];
+    if (!file) {
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const importedData = JSON.parse(e.target.result);
+            
+            // Basic validation: Check if it's an array and contains objects that look like workouts
+            if (Array.isArray(importedData) && importedData.every(item => 
+                typeof item === 'object' && item !== null && 
+                item.hasOwnProperty('id') && item.hasOwnProperty('date') && item.hasOwnProperty('type')
+            )) {
+                if (confirm("Importing new data will overwrite your current workout history. Are you sure?")) {
+                    workouts = importedData;
+                    // Sort the imported data by date (newest first) to maintain consistent display
+                    workouts.sort((a, b) => new Date(b.date) - new Date(a.date));
+                    localStorage.setItem('smartWorkouts', JSON.stringify(workouts));
+                    
+                    // Re-render all UI components with the new data
+                    renderHistory();
+                    updateDashboard();
+                    initDistribution();
+                    alert('Workout data imported successfully!');
                 }
             } else {
-                // Non-recurring expenses should not have a baseId for projection logic
-                if (e.baseId) {
-                    delete e.baseId;
-                    changed = true;
-                }
+                alert('Invalid JSON file format. Please ensure it\'s a valid workout data export (array of workout objects with id, date, and type).');
             }
-        });
-    });
-    if (changed) {
-        save();
-        console.log("Normalized expense data (baseId and recurring flags).");
-    }
-}
-
-
-function save() {
-  localStorage.setItem("billData", JSON.stringify(data));
-}
-
-function capitalise(name) {
-  return name.charAt(0).toUpperCase() + name.slice(1);
-}
-
-// Updated detectLogo to use BRAND_LOGO_RULES for more flexible matching
-function detectLogo(note) {
-  const lowerCaseNote = note.toLowerCase();
-  for (const rule of BRAND_LOGO_RULES) {
-    for (const keyword of rule.keywords) {
-      if (lowerCaseNote.includes(keyword)) {
-        return rule.logo;
-      }
-    }
-  }
-  return null;
-}
-
-// New function to update logos for all existing expenses
-function updateLogosForAllExpenses() {
-  let changed = false;
-  ["francis", "fiona"].forEach(p => {
-    data[p].forEach(e => {
-      const newLogo = detectLogo(e.note);
-      if (e.logo !== newLogo) { // Only update if the logo has changed
-        e.logo = newLogo;
-        changed = true;
-      }
-    });
-  });
-  if (changed) {
-    save();
-    console.log("Updated logos for existing expenses based on new rules.");
-  }
-}
-
-function getYears() {
-  const years = new Set();
-  // Add current year
-  years.add(new Date().getFullYear().toString());
-
-  // Add years from existing data
-  ["francis", "fiona"].forEach(p => {
-    data[p].forEach(e => {
-      if (e.month) {
-        years.add(e.month.substring(0, 4)); // Extract YYYY from YYYY-MMM
-      }
-    });
-  });
-  return [...years].sort((a, b) => parseInt(a) - parseInt(b));
-}
-
-function renderYears() {
-  yearTabsDiv.innerHTML = "";
-  getYears().forEach(year => {
-    const tab = document.createElement("div");
-    tab.className = "year-tab" + (year === activeYear.toString() ? " active" : "");
-    tab.textContent = year;
-    tab.onclick = () => {
-      activeYear = parseInt(year);
-      // Try to keep the same month, but for the new year
-      const currentMonthAbbr = activeMonth.substring(5, 8); // e.g., "JAN" from "2026-JAN"
-      activeMonth = `${activeYear}-${currentMonthAbbr}`;
-      applyRecurring(); // Re-apply recurring for the new year's current month
-      updateAll(); // Call updateAll to refresh all UI elements
-    };
-    yearTabsDiv.appendChild(tab);
-  });
-}
-
-function renderMonths() {
-  monthTabs.innerHTML = "";
-  MONTHS.forEach(m => {
-    const tab = document.createElement("div");
-    tab.className = "month-tab" + ((`${activeYear}-${m}`) === activeMonth ? " active" : "");
-    tab.textContent = m; // Display only the month abbreviation
-    tab.onclick = () => {
-      activeMonth = `${activeYear}-${m}`; // Set activeMonth with full YYYY-MMM
-      applyRecurring();
-      updateAll(); // Call updateAll to refresh all UI elements
-    };
-    monthTabs.appendChild(tab);
-  });
-}
-
-// New function to mark a month as settled or unsettled
-function markMonthAsSettled(status) {
-  data.settlements[activeMonth] = status;
-  save();
-  updateAll();
-}
-
-function total(person) {
-  return data[person]
-    .filter(e => normalizeMonthKey(e.month) === activeMonth) // Normalize month for filtering
-    .reduce((s,e) => s + e.amount, 0);
-}
-
-// New function to calculate annual totals including projected recurring expenses
-function calculateAnnualTotals() {
-    const annualTotals = { francis: 0, fiona: 0 };
-    const yearPrefix = activeYear.toString();
-
-    ["francis", "fiona"].forEach(personKey => {
-        const personExpenses = data[personKey];
-        // Use a structure to track the latest amount for each recurring baseId *across all months*
-        const latestRecurringAmounts = {}; // { baseId: amount }
-
-        // First pass: Find the latest amount for each unique recurring baseId
-        personExpenses.forEach(e => {
-            if (e.recurring && e.baseId) {
-                latestRecurringAmounts[e.baseId] = e.amount;
-            }
-        });
-
-        // Loop through each month (JAN-DEC) of the active year
-        for (let monthIndex = 0; monthIndex < 12; monthIndex++) {
-            const monthOfYear = MONTHS[monthIndex];
-            const currentYearMonthKey = `${yearPrefix}-${monthOfYear}`;
-            let monthlyProjectedTotal = 0;
-
-            const existingExpensesForThisMonth = personExpenses.filter(e => e.month === currentYearMonthKey);
-            const recurringBaseIdsExplicitlyIncludedThisMonth = new Set();
-
-            // Add all expenses explicitly recorded for this specific month
-            existingExpensesForThisMonth.forEach(e => {
-                monthlyProjectedTotal += e.amount;
-                if (e.recurring && e.baseId) {
-                    recurringBaseIdsExplicitlyIncludedThisMonth.add(e.baseId);
-                }
-            });
-
-            // For any unique recurring expenses that *have not been explicitly recorded* for this specific month,
-            // add their latest known amount to the monthly projected total.
-            // This ensures full annual projection even for unvisited months.
-            Object.keys(latestRecurringAmounts).forEach(baseId => {
-                if (!recurringBaseIdsExplicitlyIncludedThisMonth.has(baseId)) {
-                    monthlyProjectedTotal += latestRecurringAmounts[baseId];
-                }
-            });
-            annualTotals[personKey] += monthlyProjectedTotal;
-        }
-    });
-
-    return annualTotals;
-}
-
-
-function updateBalance() {
-  const a = total("francis");
-  const b = total("fiona");
-  const diff = Math.abs(a - b) / 2;
-
-  let balanceMessage = "";
-  let actionButton = "";
-
-  const isSettled = data.settlements[activeMonth];
-
-  if (isSettled) {
-    balanceMessage = `All settled for ${activeMonth}!`;
-    actionButton = `<button class="action-button" onclick="markMonthAsSettled(false)"><i class="fa-solid fa-undo"></i> Unmark as Settled</button>`;
-  } else {
-    if (a === b) {
-      balanceMessage = "All settled";
-      // No action button needed if already balanced
-    } else if (a > b) {
-      balanceMessage = `Fiona owes Francis £${diff.toFixed(2)}`;
-      actionButton = `<button class="action-button" onclick="markMonthAsSettled(true)"><i class="fa-solid fa-check"></i> Mark as Settled</button>`;
-    } else {
-      balanceMessage = `Francis owes Fiona £${diff.toFixed(2)}`;
-      actionButton = `<button class="action-button" onclick="markMonthAsSettled(true)"><i class="fa-solid fa-check"></i> Mark as Settled</button>`;
-    }
-  }
-
-  balanceTextDiv.innerHTML = `
-    <span>${balanceMessage}</span>
-    ${actionButton}
-  `;
-}
-
-function renderExpenses() {
-  // Determine avatar src for the active person
-  const avatarImgSrc = (activePerson === "francis") ? "assets/person001.png" : "assets/person002.png";
-
-  // Construct the header content including avatar, text, and separator
-  expenseHeaderDiv.innerHTML = `
-    <div class="expense-header-content">
-      <img src="${avatarImgSrc}" class="expense-header-avatar">
-      <span>${capitalise(activePerson)} – ${activeMonth}</span>
-    </div>
-    <div class="expense-separator"></div>
-  `;
-
-  // Destroy all existing expense detail charts before clearing the list
-  for (const index in expenseChartInstances) {
-    if (expenseChartInstances.hasOwnProperty(index)) {
-      expenseChartInstances[index].destroy();
-    }
-  }
-  // Clear the map after destroying instances
-  Object.keys(expenseChartInstances).forEach(key => delete expenseChartInstances[key]);
-
-
-  expenseList.innerHTML = ""; // Clear existing expense items
-
-  // Filter to only expenses for the active month, but get their original index
-  data[activePerson]
-    .filter(e => normalizeMonthKey(e.month) === activeMonth)
-    .forEach((e) => {
-      const originalIndex = data[activePerson].findIndex(item => item === e);
-
-      const row = document.createElement("div");
-      row.className = "expense";
-      // The logo or default receipt icon
-      const iconContent = e.logo ? `<img class="logo" src="${e.logo}" onerror="this.remove()">` : `<i class="fa-solid fa-receipt"></i>`;
-      
-      // Add recurring indicator if applicable
-      const recurringIndicator = e.recurring ? `<i class="fa-solid fa-repeat recurring-indicator" title="Recurring expense"></i>` : '';
-
-      row.innerHTML = `
-        <div class="expense-left">
-          ${iconContent}
-          <div>${e.note} ${recurringIndicator}<br><small>£${e.amount.toFixed(2)}</small></div>
-        </div>
-        <div class="actions">
-          <span class="action expand-chart-toggle" data-original-index="${originalIndex}" onclick="toggleExpenseChart(this, ${originalIndex})"><i class="fa-solid fa-chevron-down"></i></span>
-          <span class="action" onclick="editExpenseAtIndex(${originalIndex})"><i class="fa-solid fa-pencil"></i></span>
-          <span class="action delete" onclick="deleteExpenseAtIndex(${originalIndex})"><i class="fa-solid fa-trash"></i></span>
-        </div>
-        <!-- Chart container, will take full width due to flex-wrap -->
-        <div id="expenseChartWrapper_${originalIndex}" class="expense-chart-container" style="display:none;">
-          <canvas id="expenseChartCanvas_${originalIndex}"></canvas>
-        </div>
-      `;
-      expenseList.appendChild(row);
-    });
-}
-
-function addExpense() {
-  const amount = parseFloat(amountInput.value);
-  const note = noteInput.value.trim();
-  if (!amount || !note) return;
-
-  data[activePerson].push({
-    baseId: crypto.randomUUID(), // New items always get a fresh baseId
-    month: activeMonth, // activeMonth is already in YYYY-MMM format
-    amount,
-    note,
-    logo: detectLogo(note), // detect logo based on the note
-    recurring: recurringInput.value === "yes" ? true : false // Ensure boolean
-  });
-
-  amountInput.value = "";
-  noteInput.value = "";
-  suggestionsDiv.style.display = 'none'; // Hide suggestions after adding expense
-  save();
-  updateAll();
-}
-
-// Renamed to avoid confusion, using original index for data manipulation
-function editExpenseAtIndex(originalIndex) {
-  const e = data[activePerson][originalIndex];
-  const n = prompt("Description", e.note);
-  const a = prompt("Amount", e.amount);
-  if (n === null || a === null) return; // User cancelled prompt
-  if (!n || !a) return; // Empty values
-
-  e.note = n;
-  e.amount = parseFloat(a);
-  e.logo = detectLogo(n); // Re-detect logo in case description changed
-  // Note: changing description of a recurring item will effectively create a new "stream" if baseId relies on note
-  // For recurring, baseId should ideally remain fixed once set.
-  // The normalizeExpenseData function helps re-assign baseIds on load if they are missing or inconsistent.
-  save();
-  updateAll();
-}
-
-// Renamed to avoid confusion, using original index for data manipulation
-function deleteExpenseAtIndex(originalIndex) {
-  if (!confirm("Delete expense?")) return;
-  data[activePerson].splice(originalIndex,1);
-  save();
-  updateAll();
-}
-
-function selectPerson(p) {
-  activePerson = p;
-  francisBtn.classList.toggle("active", p === "francis");
-  fionaBtn.classList.toggle("active", p === "fiona");
-  updateAll(); // Update all elements, including re-rendering expenses
-}
-
-const chart = new Chart(document.getElementById("billChart"), {
-  type: "bar",
-  data: {
-    labels: ["Francis", "Fiona"],
-    datasets: [{
-      data: [0,0],
-      backgroundColor: ["#0a84ff","#ff375f"]
-    }]
-  },
-  options: {
-    indexAxis: "y",
-    plugins: { legend: { display: false } },
-    scales: {
-      x: { ticks: { color: "#f5f5f7" }, grid: { color: "#2a2a31" } },
-      y: { ticks: { color: "#f5f5f7" }, grid: { display: false } }
-    },
-    elements: { // Added for rounded bar corners
-      bar: {
-        borderRadius: {
-          topRight: 12, // Round the top-right corner
-          bottomRight: 12 // Round the bottom-right corner
-        }
-      }
-    }
-  }
-});
-
-function updateChart() {
-    let francisAmount, fionaAmount;
-
-    if (viewMode === 'monthly') {
-        francisAmount = total("francis"); // This is already specific to activeMonth
-        fionaAmount = total("fiona");     // This is already specific to activeMonth
-    } else { // viewMode === 'annual'
-        const annualTotals = calculateAnnualTotals();
-        francisAmount = annualTotals.francis;
-        fionaAmount = annualTotals.fiona;
-    }
-
-    // Simplified labels as requested
-    chart.data.labels = ["Francis", "Fiona"];
-    chart.data.datasets[0].data = [francisAmount, fionaAmount];
-    chart.update();
-}
-
-// New helper function to set the view mode text
-function updateViewModeText() {
-    if (viewMode === 'monthly') {
-        currentViewTextSpan.textContent = "Monthly View";
-    } else {
-        currentViewTextSpan.textContent = `Annual View (${activeYear})`;
-    }
-}
-
-// New function to toggle view mode
-function toggleViewMode() {
-    if (viewMode === 'monthly') {
-        viewMode = 'annual';
-    } else {
-        viewMode = 'monthly';
-    }
-    updateViewModeText(); // Update the text immediately
-    updateChart(); // Just update the chart, no need for full updateAll
-}
-
-
-function exportJSON() {
-  const blob = new Blob([JSON.stringify(data,null,2)], { type: "application/json" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "home-bills.json";
-  a.click();
-}
-
-function importJSON() {
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = 'application/json'; // Only accept JSON files
-
-  input.onchange = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const importedData = JSON.parse(e.target.result);
-          // Basic validation: Check if it looks like our data structure
-          if (importedData.francis && Array.isArray(importedData.francis) &&
-              importedData.fiona && Array.isArray(importedData.fiona)) {
-            if (confirm("Are you sure you want to import this data? This will overwrite your current data.")) {
-              data.francis = importedData.francis;
-              data.fiona = importedData.fiona;
-              // Import settlements too, if they exist in the imported data
-              data.settlements = importedData.settlements || {};
-              save();
-              migrateData(); // Run migration on imported data too, to ensure consistency
-              normalizeExpenseData(); // Normalize imported data
-              updateLogosForAllExpenses(); // Apply new logo rules to imported data
-              updateAll();
-              alert("Data imported successfully!");
-            }
-          } else {
-            alert("Invalid JSON file format. Please ensure it's a valid Home Bill Tracker export.");
-          }
         } catch (error) {
-          alert("Error parsing JSON file: " + error.message);
-          console.error("Error parsing JSON file:", error);
+            alert('Error parsing JSON file: ' + error.message);
         }
-      };
-      reader.readAsText(file);
+        // Clear the file input value to allow importing the same file again if needed
+        event.target.value = ''; 
+    };
+    reader.onerror = () => {
+        alert('Error reading file.');
+    };
+    reader.readAsText(file);
+}
+
+
+// ======================= WORKOUT PREP LOGIC =======================
+let prepSteps = [];
+
+function calcPace() {
+    const d = parseFloat(runDistInput.value);
+    const t = parseFloat(globalDuration.value);
+    
+    if(d > 0 && t > 0) {
+        const pace = t / d;
+        runPaceInput.value = pace.toFixed(2);
     }
-  };
-
-  input.click(); // Programmatically click the hidden file input to open file dialog
 }
 
 
-function applyRecurring() {
-  ["francis","fiona"].forEach(p => {
-    data[p].forEach(e => {
-      // If it's a recurring expense, and it has a baseId (should be true after normalizeExpenseData)
-      // and there isn't already an entry for this specific recurring item in the activeMonth, add one.
-      if (e.recurring && e.baseId && !data[p].some(x => x.baseId === e.baseId && x.month === activeMonth)) {
-        data[p].push({
-            // Create a *new* object, but inherit properties from the original recurring item
-            ...e,
-            // Assign a new, unique ID for this specific monthly instance
-            id: crypto.randomUUID(), // Each instance of a recurring bill needs a unique ID for editing/deleting
-            month: activeMonth,
-            // The amount and note are inherited, meaning if the original recurring item's amount changes,
-            // subsequent auto-added monthly entries will reflect that.
-            // If the user edits an auto-added monthly entry, it becomes an explicit entry for that month.
-        });
-      }
-    });
-  });
-  save(); // Save after potentially adding new recurring entries
-}
-
-/**
- * Toggles the visibility of an expense's history chart and renders/destroys it.
- * @param {HTMLElement} toggleButtonElement The element that was clicked (the span with the chevron).
- * @param {number} originalIndex The original index of the expense in the data[activePerson] array.
- */
-function toggleExpenseChart(toggleButtonElement, originalIndex) {
-  const chartWrapper = document.getElementById(`expenseChartWrapper_${originalIndex}`);
-  const chevronIcon = toggleButtonElement.querySelector('i');
-
-  if (chartWrapper.style.display === 'none') {
-    // Expand chart
-    chartWrapper.style.display = 'block';
-    toggleButtonElement.classList.add('expanded');
-    drawExpenseHistoryChart(data[activePerson][originalIndex], `expenseChartCanvas_${originalIndex}`, originalIndex);
-  } else {
-    // Collapse chart
-    chartWrapper.style.display = 'none';
-    toggleButtonElement.classList.remove('expanded');
-    // Destroy chart instance when collapsing to free memory
-    if (expenseChartInstances[originalIndex]) {
-      expenseChartInstances[originalIndex].destroy();
-      delete expenseChartInstances[originalIndex];
+function togglePrepInputs() {
+    const target = document.getElementById('step-target-type').value;
+    const label = document.getElementById('step-val-label');
+    const input = document.getElementById('step-val');
+    
+    if(target === 'time') {
+        label.textContent = "Duration (min)";
+        input.placeholder = "Minutes";
+    } else {
+        label.textContent = "Distance (km)";
+        input.placeholder = "Kilometers";
     }
-  }
 }
 
-/**
- * Gathers expense data for a specific item across all months of the active year.
- * This function is now responsible for *projecting* recurring expenses
- * for months where they haven't been explicitly recorded.
- *
- * @param {object} currentExpense The expense object to track (e.g., { baseId: ..., note: ... }).
- * @param {string} personKey 'francis' or 'fiona'.
- * @param {number} year The active year (e.g., 2023).
- * @returns {Array<number>} An array of 12 numbers, representing total amount for each month.
- */
-function getExpenseHistoryData(currentExpense, personKey, year) {
-    const amountsByMonth = new Array(12).fill(0);
-    const yearPrefix = year.toString();
+function addPrepStep() {
+    const phase = document.getElementById('step-phase');
+    const targetType = document.getElementById('step-target-type').value;
+    const val = parseFloat(document.getElementById('step-val').value) || 0;
+    const intensity = document.getElementById('step-intensity').value;
 
-    // Determine the identifier for matching across months
-    // Use baseId for recurring items, and note for one-off items.
-    const matcherId = currentExpense.recurring && currentExpense.baseId ? currentExpense.baseId : currentExpense.note;
-
-    // First, collect all *explicitly recorded* expenses for this item in the active year
-    const explicitMonthlyAmounts = {}; // { 'YYYY-MMM': totalAmountForThatMonth }
-
-    data[personKey].filter(e => {
-        const expenseYear = e.month.substring(0, 4);
-        const eMatcherId = e.recurring && e.baseId ? e.baseId : e.note;
-        return expenseYear === yearPrefix && eMatcherId === matcherId;
-    }).forEach(e => {
-        if (!explicitMonthlyAmounts[e.month]) {
-            explicitMonthlyAmounts[e.month] = 0;
-        }
-        explicitMonthlyAmounts[e.month] += e.amount;
+    const phaseLabels = { 'warmup': 'Warm Up', 'work': 'Workout / Interval', 'rest': 'Rest', 'cooldown': 'Cool Down' };
+    
+    prepSteps.push({
+        phase: phase.value,
+        title: phaseLabels[phase.value],
+        targetType: targetType,
+        value: val,
+        intensity: intensity
     });
 
-    // Now, populate the 12-month array, projecting recurring amounts where explicit entries are missing
-    for (let monthIndex = 0; monthIndex < 12; monthIndex++) {
-        const monthKey = `${yearPrefix}-${MONTHS[monthIndex]}`;
-        if (explicitMonthlyAmounts[monthKey] !== undefined) {
-            // Use the explicitly recorded amount(s) for this month
-            amountsByMonth[monthIndex] = explicitMonthlyAmounts[monthKey];
-        } else if (currentExpense.recurring) {
-            // If it's a recurring expense and no explicit entry, project its current amount
-            amountsByMonth[monthIndex] = currentExpense.amount;
+    renderPrepList();
+}
+
+function removePrepStep(index) {
+    prepSteps.splice(index, 1);
+    renderPrepList();
+}
+
+function resetPrep() {
+    prepSteps = [];
+    renderPrepList();
+}
+
+function renderPrepList() {
+    const list = document.getElementById('prep-list');
+    list.innerHTML = '';
+    
+    let totalTime = 0;
+    let totalDist = 0;
+
+    prepSteps.forEach((step, index) => {
+        // Stats Calc
+        if(step.targetType === 'time') {
+            totalTime += step.value;
+            // For estimation, assume a general pace if time is given
+            const prepWorkoutType = document.getElementById('prep-type').value;
+            if (prepWorkoutType === 'Running' && step.value > 0) {
+                 // Example: Estimate 1km for every 5 minutes of running
+                totalDist += step.value / 5; 
+            } else if (prepWorkoutType === 'Cycling' && step.value > 0) {
+                // Example: Estimate 5km for every 10 minutes of cycling
+                totalDist += (step.value / 10) * 5; 
+            } else if (prepWorkoutType === 'Rowing' && step.value > 0) {
+                // Example: Estimate 1.5km for every 10 minutes of rowing
+                totalDist += (step.value / 10) * 1.5;
+            }
+        } else if(step.targetType === 'dist') {
+            totalDist += step.value;
+            // For estimation, assume a general time if distance is given
+            const prepWorkoutType = document.getElementById('prep-type').value;
+            if (prepWorkoutType === 'Running' && step.value > 0) {
+                 // Example: Assume 5 minutes per km for running
+                totalTime += step.value * 5; 
+            } else if (prepWorkoutType === 'Cycling' && step.value > 0) {
+                // Example: Assume 2 minutes per km for cycling
+                totalTime += step.value * 2; 
+            } else if (prepWorkoutType === 'Rowing' && step.value > 0) {
+                // Example: Assume 6 minutes per km for rowing
+                totalTime += step.value * 6;
+            }
         }
-        // If it's non-recurring and no explicit entry, it remains 0 (already initialized)
+
+
+        const li = document.createElement('li');
+        li.className = `step-item step-${step.phase}`;
+        
+        let detailText = "";
+        if(step.targetType === 'time') detailText = `${step.value} minutes`;
+        else detailText = `${step.value} km`;
+
+        li.innerHTML = `
+            <div class="step-info">
+                <span class="step-tag">${step.phase}</span>
+                <span class="step-title">${step.title}</span>
+                <span class="step-detail">
+                    ${detailText} ${step.intensity ? '• ' + step.intensity : ''}
+                </span>
+            </div>
+            <button class="bin" onclick="removePrepStep(${index})"><i class="fa-solid fa-xmark"></i></button>
+        `;
+        list.appendChild(li);
+    });
+
+    if(prepSteps.length === 0) {
+        list.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-secondary); border: 2px dashed var(--border-color); border-radius:12px;">Start adding steps to build your workout</div>`;
     }
-    return amountsByMonth;
+
+    document.getElementById('prep-total-duration').textContent = Math.round(totalTime);
+    document.getElementById('prep-total-distance').textContent = `${totalDist.toFixed(1)} km est.`;
 }
-
-
-/**
- * Draws or updates the individual expense history chart.
- * @param {object} expense The expense object being charted.
- * @param {string} canvasId The ID of the canvas element.
- * @param {number} originalIndex The original index of the expense for instance tracking.
- */
-function drawExpenseHistoryChart(expense, canvasId, originalIndex) {
-  const ctx = document.getElementById(canvasId);
-
-  // Destroy existing chart instance if it exists before creating a new one
-  if (expenseChartInstances[originalIndex]) {
-    expenseChartInstances[originalIndex].destroy();
-  }
-
-  const amounts = getExpenseHistoryData(expense, activePerson, activeYear);
-
-  expenseChartInstances[originalIndex] = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: MONTHS,
-      datasets: [{
-        data: amounts,
-        backgroundColor: (context) => {
-          // Use direct hex code for robustness
-          return context.raw > 0 ? '#0a84ff' : 'transparent';
-        },
-        borderColor: 'transparent',
-        borderRadius: 4,
-        barPercentage: 0.8,
-        categoryPercentage: 0.8
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          display: false
-        },
-        tooltip: {
-          callbacks: {
-            label: function(context) {
-              let label = context.dataset.label || '';
-              if (label) {
-                label += ': ';
-              }
-              if (context.parsed.y !== null) {
-                // Format amount as currency
-                label += new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(context.parsed.y);
-              }
-              return label;
-            }
-          },
-          titleColor: 'white', // Tooltip title color
-          bodyColor: 'white',  // Tooltip body color
-          backgroundColor: 'rgba(27, 27, 32, 0.8)' // Tooltip background, slightly transparent card color
-        }
-      },
-      scales: {
-        x: {
-          grid: {
-            display: false,
-          },
-          ticks: {
-            color: 'white', /* Changed to white */
-            font: {
-              size: 10
-            }
-          }
-        },
-        y: {
-          beginAtZero: true,
-          grid: {
-            color: '#2a2a31',
-          },
-          ticks: {
-            color: 'white', /* Changed to white */
-            font: {
-              size: 10
-            },
-            callback: function(value) {
-              return '£' + value.toFixed(0);
-            }
-          }
-        }
-      }
-    }
-  });
-}
-
-
-function updateAll() {
-  renderYears(); // Render years first
-  renderMonths(); // Then months for the active year
-  applyRecurring(); // Ensure recurring expenses are applied *after* data migration and before totals are calculated
-  updateViewModeText(); // Set the correct text for the current view mode and active year
-  updateChart(); // Update chart based on current viewMode
-  updateBalance(); // Balance is always for the activeMonth
-  renderExpenses();
-}
-
-// Initial setup calls
-migrateData(); // Run month format migration once on script load
-normalizeExpenseData(); // Run data integrity check
-updateLogosForAllExpenses(); // Apply logo rules to all existing data on load
-updateAll(); // Initial rendering
 </script>
+
 </body>
 </html>
