@@ -7,235 +7,482 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
+        /* Apple Style Dark Mode Variables */
         :root {
-            color-scheme: light dark;
-            --primary: #007AFF;
-            --danger: #FF3B30;
-            --success: #34C759;
-            --radius: 14px;
-            --bg-color: #f5f5f7;
-            --card-bg: rgba(255, 255, 255, 0.85);
-            --input-bg: rgba(255, 255, 255, 0.95);
-            --border-color: rgba(0, 0, 0, 0.1);
-            --text-main: #1d1d1f;
-            --text-secondary: #6e6e73;
-            --row-hover: rgba(0,0,0,0.03);
+            /* Core Colors */
+            --primary: #0A84FF; /* Apple Blue */
+            --danger: #FF453A; /* Apple Red */
+            --success: #32D74B; /* Apple Green */
+            --warning: #FFD60A; /* Apple Yellow */
+            --info: #64D2FF; /* Apple Light Blue */
+
+            /* Neutral Colors - Dark Mode */
+            --bg-color: #000000; /* Pure Black for OLED */
+            --card-bg: rgba(28, 28, 30, 0.9); /* Slightly transparent dark gray for cards */
+            --input-bg: rgba(44, 44, 46, 0.9); /* Slightly transparent medium dark gray for inputs */
+            --border-color: rgba(68, 68, 70, 0.6); /* Subtle border for dark mode */
+            --text-main: #FFFFFF; /* Pure White text */
+            --text-secondary: #EBEBF599; /* Light gray for secondary text, 60% opacity */
+            --text-placeholder: #EBEBF54D; /* Lighter gray for placeholders, 30% opacity */
+            --row-hover: rgba(255, 255, 255, 0.08); /* Subtle hover for table rows */
+            --gradient-start: #0A84FF; /* Consistent with --primary */
+            --gradient-end: #5856D6; /* A slightly deeper blue/purple */
+
+            /* Component Radii */
+            --radius-sm: 8px; /* Small elements like nav buttons */
+            --radius-md: 12px; /* Inputs, small buttons */
+            --radius-lg: 16px; /* Cards, main buttons */
+
+            /* Shadows */
+            --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.4);
+            --shadow-btn: 0 2px 6px rgba(0, 0, 0, 0.3);
+            --shadow-input-focus: 0 0 0 3px rgba(10, 132, 255, 0.5); /* Primary color glow */
         }
 
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --bg-color: #000;
-                --card-bg: rgba(28, 28, 30, 0.9);
-                --input-bg: rgba(44, 44, 46, 0.9);
-                --border-color: rgba(255, 255, 255, 0.15);
-                --text-main: #f5f5f7;
-                --text-secondary: #a1a1a6;
-                --row-hover: rgba(255,255,255,0.05);
-            }
-        }
-
+        /* Base Styles */
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
             background: var(--bg-color);
             color: var(--text-main);
             margin: 0;
             padding: 20px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            line-height: 1.4;
         }
 
         .container { max-width: 900px; margin: 0 auto; }
 
+        /* Card Styles */
         .card {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
-            border-radius: var(--radius);
+            border-radius: var(--radius-lg);
             padding: 24px;
             margin-bottom: 24px;
-            backdrop-filter: blur(20px);
-            box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+            backdrop-filter: blur(20px) saturate(180%); /* Enhanced blur */
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            box-shadow: var(--shadow-card);
             position: relative;
+            overflow: hidden; /* Ensures content respects border-radius */
         }
+        
+        /* Headings */
+        h1 { font-size: 28px; margin: 0; font-weight: 700; }
+        h2 { font-size: 20px; margin-bottom: 18px; font-weight: 600; color: var(--text-main); }
+        h3 { font-size: 17px; margin-bottom: 14px; font-weight: 600; color: var(--text-main); }
 
-        h1 { font-size: 26px; margin: 0; }
-        h2 { font-size: 18px; margin-bottom: 16px; }
 
-        /* HEADER - Desktop styles */
+        /* HEADER */
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 24px;
-            flex-wrap: wrap; /* Allows items to wrap if space is tight before full column stack */
+            margin-bottom: 28px;
+            flex-wrap: wrap;
             gap: 15px;
         }
 
-        .header-top-row { /* New wrapper for app-title and nav-tabs */
+        .header-top-row {
             display: flex;
             align-items: center;
-            gap: 16px;
-            flex: 1; /* Allows it to take available space on desktop */
+            gap: 20px; /* Increased gap */
+            flex: 1;
         }
 
-        /* --- NAVIGATION TABS --- */
+        .app-title {
+            font-size: 28px; /* Slightly larger */
+            font-weight: 800; /* Bolder */
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px; /* Increased gap for icons */
+            background: linear-gradient(to right, var(--primary), var(--gradient-end)); /* Use gradient vars */
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent;
+        }
+        .app-title i {
+            font-size: 24px; /* Adjust icon size */
+        }
+
+        /* NAVIGATION TABS (Segmented Control) */
         .nav-tabs {
             display: inline-flex;
-            background: rgba(118, 118, 128, 0.12);
-            padding: 3px;
-            border-radius: 10px;
-            margin-right: auto; /* Push csv button to right on desktop */
+            background: rgba(118, 118, 128, 0.24); /* Darker, more prominent background */
+            padding: 4px;
+            border-radius: var(--radius-sm);
+            margin-right: auto;
         }
 
         .nav-btn {
             border: none;
             background: none;
-            padding: 6px 16px;
-            font-size: 13px;
-            font-weight: 500;
-            border-radius: 7px;
+            padding: 8px 18px; /* Slightly more padding */
+            font-size: 14px; /* Slightly larger font */
+            font-weight: 600;
+            border-radius: var(--radius-sm);
             cursor: pointer;
-            color: var(--text-main);
-            transition: 0.2s;
+            color: var(--text-secondary); /* Muted text color */
+            transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+            -webkit-appearance: none; /* Remove default button styles */
+            -moz-appearance: none;
+            appearance: none;
         }
 
         .nav-btn.active {
-            background: var(--card-bg);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            font-weight: 600;
+            background: var(--card-bg); /* Use card background for active state */
+            color: var(--text-main); /* White text for active */
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2), inset 0 0 0 0.5px rgba(255,255,255,0.1); /* Subtle inner and outer shadow */
+            font-weight: 700;
+        }
+        .nav-btn:not(.active):hover {
+            color: var(--text-main); /* Slightly brighten text on hover for inactive buttons */
         }
 
-        /* --- BUTTONS --- */
-        .btn-primary { background: var(--primary); color: #fff; border: none; padding: 14px; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; transition: opacity 0.2s; }
-        .btn-primary:hover { opacity: 0.9; }
+        /* BUTTONS */
+        .btn-primary {
+            background: linear-gradient(180deg, var(--primary), var(--gradient-end)); /* Subtle gradient */
+            color: #fff;
+            border: none;
+            padding: 14px 20px; /* More generous padding */
+            border-radius: var(--radius-md);
+            font-size: 16px; /* Larger font */
+            font-weight: 700; /* Bolder */
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-btn);
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+        .btn-primary:hover {
+            opacity: 0.9;
+            transform: translateY(-1px); /* Subtle lift effect */
+            box-shadow: 0 44px 8px rgba(0,0,0,0.4);
+        }
+        .btn-primary:active {
+            opacity: 0.8;
+            transform: translateY(0);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3) inset; /* Pressed effect */
+        }
 
         .btn-secondary {
-            background: rgba(0, 122, 255, 0.1);
+            background: rgba(10, 132, 255, 0.15); /* Primary color with transparency */
             color: var(--primary);
-            border: none;
+            border: 1px solid rgba(10, 132, 255, 0.3); /* Subtle border matching primary */
             padding: 10px 16px;
-            border-radius: 20px;
-            font-size: 13px;
+            border-radius: var(--radius-md);
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
             display: flex;
             align-items: center;
             gap: 8px;
-            transition: background 0.2s;
+            transition: background 0.2s ease, border-color 0.2s ease;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
         }
-        .btn-secondary:hover { background: rgba(0, 122, 255, 0.2); }
+        .btn-secondary:hover {
+            background: rgba(10, 132, 255, 0.25);
+            border-color: rgba(10, 132, 255, 0.5);
+        }
+        .btn-secondary:active {
+            background: rgba(10, 132, 255, 0.35);
+            border-color: rgba(10, 132, 255, 0.6);
+        }
 
-        .btn-danger-text { /* For clear all button */
+        .btn-danger-text {
             color: var(--danger);
-            background: rgba(255, 59, 48, 0.1);
+            background: rgba(255, 69, 58, 0.15);
+            border-color: rgba(255, 69, 58, 0.3);
         }
         .btn-danger-text:hover {
-             background: rgba(255, 59, 48, 0.2);
+             background: rgba(255, 69, 58, 0.25);
+             border-color: rgba(255, 69, 58, 0.5);
+        }
+        .btn-danger-text:active {
+            background: rgba(255, 69, 58, 0.35);
+            border-color: rgba(255, 69, 58, 0.6);
         }
 
         .btn-add-step {
             background: var(--success);
             color: white;
             border: none;
-            padding: 10px;
-            border-radius: 10px;
+            padding: 12px; /* Slightly more padding */
+            border-radius: var(--radius-md);
             font-weight: 600;
             cursor: pointer;
             width: 100%;
+            transition: background 0.2s ease, transform 0.2s ease;
+            box-shadow: var(--shadow-btn);
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
         }
+        .btn-add-step:hover {
+            background: #28a745; /* Slightly darker green */
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+        }
+        .btn-add-step:active {
+            background: #218838; /* Even darker green */
+            transform: translateY(0);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3) inset;
+        }
+        .btn-add-step i { margin-right: 6px; }
+
 
         /* Form & Inputs */
         .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 16px; }
         .form-group { display: flex; flex-direction: column; }
         
-        label { font-size: 11px; font-weight: 600; margin-bottom: 6px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.6px; }
+        label {
+            font-size: 11px;
+            font-weight: 600;
+            margin-bottom: 8px; /* Increased margin */
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            opacity: 0.8;
+        }
         
         input, select, textarea {
-            background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-main);
-            padding: 10px 12px; border-radius: 10px; font-size: 15px; outline: none; width: 100%; box-sizing: border-box;
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 10px 14px; /* More padding */
+            border-radius: var(--radius-md); /* Consistent radius */
+            font-size: 15px;
+            outline: none;
+            width: 100%;
+            box-sizing: border-box;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            -webkit-appearance: none; /* Remove default styles for consistency */
+            -moz-appearance: none;
+            appearance: none;
+        }
+        input::placeholder, textarea::placeholder {
+            color: var(--text-placeholder);
+            opacity: 1; /* Firefox default is lower */
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--primary);
+            box-shadow: var(--shadow-input-focus);
+        }
+        select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23EBEBF599'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+            padding-right: 30px; /* Make space for the custom arrow */
+        }
+        select option {
+            background: var(--input-bg); /* Ensure options are dark */
+            color: var(--text-main);
+        }
+        textarea {
+            resize: vertical;
+            min-height: 60px;
         }
 
         /* Styling for the box around form sections */
         .form-section-box {
-            padding: 16px;
-            background: rgba(128,128,128,0.06); /* Explicit RGBA, can be var(--input-bg) or similar */
-            border-radius: 10px;
-            border: 1px dashed var(--border-color);
-            margin-bottom: 16px;
+            padding: 20px; /* More padding */
+            background: rgba(128,128,128,0.08); /* Lighter background for differentiation */
+            border-radius: var(--radius-md);
+            border: 1px dashed var(--border-color); /* Dashed border for distinct sections */
+            margin-bottom: 18px; /* Increased margin */
         }
 
-        /* Dynamic Fields - Now uses .form-section-box */
-        /* #dynamicFields no longer needs its own specific styling, as it inherits from .form-section-box */
+        /* Dynamic Fields */
         .field-group { display: none; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; }
         .field-group.active { display: grid; }
 
 
         /* Tables */
-        table { width: 100%; border-collapse: collapse; min-width: 650px; }
-        th { font-size: 12px; color: var(--text-secondary); text-transform: uppercase; text-align: left; padding: 12px; border-bottom: 1px solid var(--border-color); }
+        table {
+            width: 100%;
+            border-collapse: separate; /* Allows border-radius on table rows */
+            border-spacing: 0;
+            min-width: 650px;
+        }
+        th {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            text-align: left;
+            padding: 14px 12px; /* More padding */
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
         
-        .date-row { background: rgba(128, 128, 128, 0.05); cursor: pointer; font-weight: 600; font-size: 14px; }
-        .date-row td { padding: 12px; border-bottom: 1px solid var(--border-color); }
+        .date-row {
+            background: rgba(128, 128, 128, 0.08); /* Slightly darker background */
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: background 0.2s ease;
+        }
+        .date-row td {
+            padding: 14px 12px;
+            border-bottom: 1px solid var(--border-color);
+            position: relative; /* For the chevron icon */
+        }
+        .date-row:hover {
+            background: var(--row-hover);
+        }
+        .date-row i {
+            transition: transform 0.2s ease;
+            color: var(--text-secondary);
+            font-size: 10px;
+        }
+        .date-row.expanded i {
+            transform: rotate(90deg);
+        }
         
-        .workout-row { cursor: pointer; display: none; }
+        .workout-row { cursor: pointer; display: none; transition: background 0.2s ease; }
         .workout-row.visible { display: table-row; }
-        .workout-row td { padding: 12px; border-bottom: 1px solid var(--border-color); }
+        .workout-row td {
+            padding: 12px; /* Slightly less padding than date row */
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-main);
+        }
+        .workout-row:hover {
+            background: var(--row-hover);
+        }
         
         th:last-child, td:last-child { text-align: right; padding-right: 12px; }
 
-        .details-row { display: none; background: rgba(128, 128, 128, 0.02); }
+        .details-row { display: none; background: rgba(128, 128, 128, 0.05); }
         .details-row.visible { display: table-row; }
-        .details-content { padding: 12px 12px 12px 40px; font-size: 13px; color: var(--text-secondary); display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+        .details-content {
+            padding: 12px 12px 12px 40px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+        }
+        .details-content b { color: var(--text-main); font-weight: 500; } /* Make labels slightly more prominent */
 
-        .tag { padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 600; display: inline-block; min-width: 70px; text-align: center; }
-        .type-running, .type-cycling { color:#FF9500; background:rgba(255,149,0,0.15); }
-        .type-swimming, .type-rowing { color:#007AFF; background:rgba(0,122,255,0.15); }
-        .type-weights, .type-strength, .type-core { color:#AF52DE; background:rgba(175,82,222,0.15); }
-        .type-yoga, .type-pilates, .type-hiit, .type-other { color:#34C759; background:rgba(52,199,89,0.15); }
+        .tag {
+            padding: 5px 10px; /* Slightly more vertical padding */
+            border-radius: 999px; /* Pill shape */
+            font-size: 11px; /* Smaller font for tags */
+            font-weight: 600;
+            display: inline-block;
+            min-width: 70px;
+            text-align: center;
+            opacity: 0.9;
+            letter-spacing: 0.2px;
+        }
+        .type-running, .type-cycling { color: var(--warning); background: rgba(255,199,0,0.18); } /* Apple Yellow */
+        .type-swimming, .type-rowing { color: var(--primary); background: rgba(10,132,255,0.18); } /* Apple Blue */
+        .type-weights, .type-strength, .type-core { color: #BF5AF2; background: rgba(191,90,242,0.18); } /* Apple Purple */
+        .type-yoga, .type-pilates, .type-hiit, .type-other { color: var(--success); background: rgba(48,209,88,0.18); } /* Apple Green */
+
+        /* Empty State */
+        .empty {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+            font-style: italic;
+            border-top: 1px solid var(--border-color);
+            margin-top: 10px;
+            font-size: 15px;
+        }
 
         /* --- DASHBOARD STYLES --- */
         .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; margin-bottom: 24px; }
         
         .stat-card {
-            padding: 12px 16px;
-            border-radius: 12px;
+            padding: 16px; /* More padding */
+            border-radius: var(--radius-md);
             color: white;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            height: 60px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            height: 70px; /* Taller cards */
+            box-shadow: var(--shadow-btn); /* Use button shadow for consistency */
+            overflow: hidden;
+            position: relative;
+        }
+        /* Subtle texture overlay for cards */
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(rgba(255,255,255,0.05), rgba(0,0,0,0.05));
+            pointer-events: none;
+            z-index: 1;
         }
         
         .stat-card.orange { background: linear-gradient(135deg, #FF9500, #FF3B30); }
-        .stat-card.blue { background: linear-gradient(135deg, #007AFF, #5856D6); }
-        .stat-card.purple { background: linear-gradient(135deg, #AF52DE, #FF2D55); }
-        .stat-card.green { background: linear-gradient(135deg, #34C759, #30B0C7); }
+        .stat-card.blue { background: linear-gradient(135deg, var(--primary), var(--gradient-end)); }
+        .stat-card.purple { background: linear-gradient(135deg, #BF5AF2, #AF52DE); }
+        .stat-card.green { background: linear-gradient(135deg, var(--success), #30B0C7); }
         .stat-card.gray { background: linear-gradient(135deg, #8E8E93, #636366); }
 
-        .stat-label { font-size: 11px; text-transform: uppercase; opacity: 0.8; font-weight: 600; }
-        .stat-value { font-size: 20px; font-weight: 700; }
-        .stat-unit { font-size: 13px; font-weight: 500; opacity: 0.9; }
+        .stat-label { font-size: 12px; text-transform: uppercase; opacity: 0.8; font-weight: 600; letter-spacing: 0.5px; z-index: 2; position: relative; }
+        .stat-value { font-size: 24px; font-weight: 700; z-index: 2; position: relative; }
+        .stat-unit { font-size: 14px; font-weight: 500; opacity: 0.9; z-index: 2; position: relative; }
 
         canvas { width: 100%; height: 280px; margin-bottom: 20px; }
         
-        .bin { color: rgba(255, 59, 48, 0.5); font-size: 14px; border:none; background:none; cursor: pointer; padding: 8px;}
-        .bin:hover { color: #FF3B30; }
+        .bin {
+            color: var(--danger);
+            font-size: 16px; /* Slightly larger icon */
+            border:none;
+            background: none;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%; /* Circular hit area */
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+        .bin:hover {
+            background: rgba(255, 69, 58, 0.1);
+            color: var(--danger);
+        }
+        .bin:active {
+            background: rgba(255, 69, 58, 0.2);
+        }
 
         /* --- DISTRIBUTION CHART STYLES --- */
         .dist-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
         .dist-wrapper { width: 100%; }
         #distChart { width: 100%; height: 320px; }
-        .dist-legend { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-color); }
-        .legend-item { display: flex; align-items: center; font-size: 13px; }
-        .legend-dot { width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; }
+        .dist-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px 24px; /* Increased horizontal gap */
+            margin-top: 20px; /* More margin */
+            padding-top: 16px;
+            border-top: 1px solid var(--border-color);
+        }
+        .legend-item { display: flex; align-items: center; font-size: 14px; }
+        .legend-dot {
+            width: 12px; /* Larger dot */
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 10px; /* More space */
+            flex-shrink: 0;
+        }
         .legend-info { display: flex; flex-direction: column; }
-        .legend-name { font-weight: 500; }
-        .legend-stats { font-size: 11px; color: var(--text-secondary); }
+        .legend-name { font-weight: 600; color: var(--text-main); }
+        .legend-stats { font-size: 12px; color: var(--text-secondary); }
 
         /* --- PREP BUILDER STYLES --- */
         .prep-container { display: none; }
         .prep-container.active { display: block; }
         
-        .builder-grid { display: grid; grid-template-columns: 1fr 300px; gap: 20px; }
+        .builder-grid { display: grid; grid-template-columns: 1fr 300px; gap: 24px; /* More gap */ }
         @media (max-width: 800px) { .builder-grid { grid-template-columns: 1fr; } }
 
         .step-list { list-style: none; padding: 0; margin: 0; }
@@ -244,141 +491,165 @@
             border: 1px solid var(--border-color);
             padding: 16px;
             margin-bottom: 12px;
-            border-radius: 12px;
+            border-radius: var(--radius-md);
             display: flex;
             align-items: center;
             justify-content: space-between;
             position: relative;
+            overflow: hidden; /* For the color bar */
         }
         
         .step-item::before {
-            content:''; position: absolute; left:0; top: 12px; bottom: 12px; width: 4px; border-radius: 0 4px 4px 0;
+            content:'';
+            position: absolute;
+            left:0;
+            top: 0; /* Full height bar */
+            bottom: 0;
+            width: 6px; /* Wider bar */
+            border-radius: 0; /* No radius on the bar itself */
         }
-        .step-warmup::before { background: #34C759; }
-        .step-work::before { background: #FF9500; }
-        .step-cooldown::before { background: #007AFF; }
-        .step-rest::before { background: #8E8E93; }
+        .step-warmup::before { background: var(--success); }
+        .step-work::before { background: var(--warning); }
+        .step-cooldown::before { background: var(--primary); }
+        .step-rest::before { background: var(--text-secondary); } /* Use secondary text color for rest */
 
-        .step-info { display: flex; flex-direction: column; gap: 4px; }
-        .step-title { font-weight: 700; font-size: 15px; }
+        .step-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding-left: 10px; /* Offset for the color bar */
+        }
+        .step-title { font-weight: 700; font-size: 16px; color: var(--text-main); }
         .step-detail { font-size: 13px; color: var(--text-secondary); }
-        .step-tag { font-size: 10px; text-transform: uppercase; font-weight: 700; opacity: 0.6; }
+        .step-tag {
+            font-size: 10px;
+            text-transform: uppercase;
+            font-weight: 700;
+            opacity: 0.7;
+            color: var(--primary); /* Use primary for tag highlight */
+            letter-spacing: 0.5px;
+        }
 
-        .add-panel { background: rgba(128,128,128,0.04); padding: 16px; border-radius: 12px; border: 1px dashed var(--border-color); }
-        .add-title { font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 10px; }
+        .add-panel {
+            background: rgba(128,128,128,0.06); /* Slightly lighter than card-bg */
+            padding: 20px;
+            border-radius: var(--radius-md);
+            border: 1px dashed var(--border-color);
+        }
+        .add-title {
+            font-size: 12px;
+            font-weight: 700; /* Bolder */
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin-bottom: 16px; /* More margin */
+            letter-spacing: 0.8px;
+            opacity: 0.9;
+        }
         
         .summary-box {
             text-align: center;
-            padding: 20px;
-            background: linear-gradient(135deg, #007AFF, #5856D6);
+            padding: 24px; /* More padding */
+            background: linear-gradient(135deg, var(--primary), var(--gradient-end));
             color: white;
-            border-radius: 12px;
-            margin-bottom: 20px;
+            border-radius: var(--radius-md);
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-card);
+            position: relative;
+            overflow: hidden;
         }
-        .summary-total { font-size: 32px; font-weight: 800; }
-        .summary-label { font-size: 13px; font-weight: 500; opacity: 0.9; }
+        .summary-box::before { /* Subtle texture */
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(rgba(255,255,255,0.08), rgba(0,0,0,0.08));
+            pointer-events: none;
+            z-index: 1;
+        }
+        .summary-total { font-size: 36px; font-weight: 800; z-index: 2; position: relative; }
+        .summary-label { font-size: 14px; font-weight: 600; opacity: 0.9; letter-spacing: 0.5px; z-index: 2; position: relative; }
+        .summary-box #prep-total-distance { font-size: 13px; margin-top: 8px; opacity: 0.8; z-index: 2; position: relative; }
+
 
         .views-section { display: none; }
         .views-section.visible { display: block; }
         
-        .app-title {
-            font-size: 26px;
-            font-weight: 700;
-            margin: 0;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: linear-gradient(to right, var(--primary), #AF52DE);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            color: transparent;
-        }
-
         /* --- New Styling for Import/Export Buttons --- */
         .header-actions {
             display: flex;
-            gap: 10px;
-            flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
-            justify-content: flex-end; /* Align to the right on desktop */
+            gap: 12px; /* Slightly more gap */
+            flex-wrap: wrap;
+            justify-content: flex-end;
         }
         @media (max-width: 768px) {
             .header-actions {
-                width: 100%; /* Take full width on mobile */
-                justify-content: center; /* Center buttons on mobile */
+                width: 100%;
+                justify-content: center;
             }
             .header-actions .btn-secondary {
-                flex-grow: 1; /* Make buttons expand to fill space */
+                flex-grow: 1;
             }
         }
         
         /* --- New Styling for Print/Clear Buttons in Prep View --- */
         .prep-actions {
             display: flex;
-            gap: 10px;
-            flex-direction: row; /* Default: horizontal */
+            gap: 12px;
+            flex-direction: row;
             justify-content: center;
+            margin-top: 16px;
         }
         .prep-actions .btn-secondary {
-             flex: 1; /* Make buttons share space equally */
+             flex: 1;
         }
         @media (max-width: 768px) {
             .prep-actions {
-                flex-direction: column; /* Stack vertically on mobile */
+                flex-direction: column;
             }
         }
-
 
         /* --- MOBILE RESPONSIVENESS --- */
         @media (max-width: 768px) {
             body {
-                padding: 15px; /* Slightly reduced padding for smaller screens */
+                padding: 15px;
             }
 
             .header {
-                flex-direction: column; /* Stack header items vertically */
-                align-items: center; /* Center items horizontally */
-                gap: 20px; /* Spacing between stacked header elements */
+                flex-direction: column;
+                align-items: center;
+                gap: 20px;
             }
 
             .header-top-row {
-                flex-direction: column; /* Stack app-title and nav-tabs vertically */
-                width: 100%; /* Ensure it takes full width for centering */
-                gap: 15px; /* Space between app-title and nav-tabs */
-                flex: auto; /* Reset flex grow on mobile */
+                flex-direction: column;
+                width: 100%;
+                gap: 15px;
+                flex: auto;
             }
 
             .nav-tabs {
-                margin-right: 0; /* Remove auto margin to center tabs */
-                justify-content: center; /* Center the tabs within its container */
-                width: 100%; /* Allow nav-tabs to take full width */
+                margin-right: 0;
+                justify-content: center;
+                width: 100%;
             }
 
-            /* .btn-secondary {  This rule is now overridden by more specific .header-actions .btn-secondary
-                width: 100%;
-                justify-content: center;
-            } */
-
-            /* For tables that might overflow, min-width on table is often helpful,
-               but overflow-x: auto is already handling it. */
             table {
-                min-width: unset; /* Remove min-width to allow shrinking if needed, handled by overflow */
+                min-width: unset;
             }
             th, td {
-                padding: 10px 8px; /* Slightly reduce padding in table cells */
+                padding: 12px 8px; /* Adjust padding for smaller screens */
             }
 
             .details-content {
-                padding: 10px 10px 10px 20px; /* Adjust padding for details row */
-                grid-template-columns: 1fr; /* Stack detail items vertically on very small screens */
+                padding: 10px 10px 10px 20px;
+                grid-template-columns: 1fr;
             }
             .dashboard-header {
                 flex-direction: column;
-                align-items: flex-start; /* Align dashboard header items to start when stacked */
+                align-items: flex-start;
                 gap: 10px;
             }
             .dashboard-header h2, .dashboard-header select {
-                width: 100%; /* Make title and select full width */
+                width: 100%;
             }
             .dist-header {
                 flex-direction: column;
@@ -387,6 +658,12 @@
             }
             .dist-header h2, .dist-header select {
                 width: 100%;
+            }
+            .form-grid {
+                grid-template-columns: 1fr; /* Stack form inputs vertically on small screens */
+            }
+            .form-section-box {
+                padding: 16px; /* Less padding on mobile */
             }
         }
     </style>
@@ -725,7 +1002,7 @@
                     
                     <ul id="prep-list" class="step-list">
                         <!-- Steps go here -->
-                        <div style="text-align:center; padding:30px; color:var(--text-secondary); border: 2px dashed var(--border-color); border-radius:12px;">
+                        <div style="text-align:center; padding:30px; color:var(--text-secondary); border: 2px dashed var(--border-color); border-radius:var(--radius-md);">
                             Start adding steps to build your workout
                         </div>
                     </ul>
@@ -805,7 +1082,7 @@ function switchView(viewName) {
 let workouts = [];
 try { 
     // Attempt to parse existing data, default to empty array if not found or parsing fails
-    workouts = JSON.parse(localStorage.getItem('smartWorkouts')) || []; 
+    workouts = JSON.parse(localStorage.getItem('smartWorkouts')) || []; // Added || [] for robustness
 } catch (e) { 
     console.error("Error parsing localStorage data:", e);
     workouts = []; // Fallback to empty array on error
@@ -828,12 +1105,12 @@ const globalDuration = document.getElementById('duration');
 const runDistInput = document.getElementById('run-dist');
 const runPaceInput = document.getElementById('run-pace'); 
 
-// Color Palette
+// Color Palette - Updated to use new Apple-style colors
 const workoutColors = {
-    'Running': '#FF9500', 'Cycling': '#FF9500', 
-    'Swimming': '#007AFF', 'Rowing': '#007AFF',
-    'Weights': '#AF52DE', 'Strength': '#AF52DE', 'Core': '#AF52DE',
-    'Yoga': '#34C759', 'Pilates': '#34C759', 'HIIT': '#34C759', 'Other': '#8e8e93'
+    'Running': '#FF9500', 'Cycling': '#FF9500', /* Apple Orange */
+    'Swimming': '#0A84FF', 'Rowing': '#0A84FF', /* Apple Blue */
+    'Weights': '#BF5AF2', 'Strength': '#BF5AF2', 'Core': '#BF5AF2', /* Apple Purple */
+    'Yoga': '#32D74B', 'Pilates': '#32D74B', 'HIIT': '#32D74B', 'Other': '#8e8e93' /* Apple Green / Gray */
 };
 
 document.getElementById('date').valueAsDate = new Date();
@@ -933,7 +1210,7 @@ function renderHistory() {
 
     Object.keys(groups).forEach(dateKey => {
         const dayWorkouts = groups[dateKey];
-        const dateObj = new Date(dateKey);
+        const dateObj = new Date(dateKey + 'T00:00:00'); // Add time to avoid timezone issues
         const dateStr = dateObj.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
         const dayDuration = dayWorkouts.reduce((sum, w) => sum + w.duration, 0);
 
@@ -966,7 +1243,7 @@ function renderHistory() {
             tr.innerHTML = `
                 <td></td>
                 <td style="padding-left:12px;">
-                    <span class="tag type-${w.type.toLowerCase()}">${w.type}</span>
+                    <span class="tag type-${w.type.toLowerCase().replace(/\s/g, '-') /* handles 'HIIT' -> 'hiit' */ }">${w.type}</span>
                     ${w.notes ? '<i class="fa-regular fa-angles-right" style="color:var(--primary);margin-left:8px;font-size:12px;"></i>' : ''} 
                 </td>
                 <td>${w.duration} min</td>
@@ -1016,6 +1293,7 @@ function initDistribution() {
     });
 
     if(years.includes(Number(oldVal))) distYearSelect.value = oldVal;
+    else if (years.length > 0) distYearSelect.value = years[0]; // Select the latest year if old value is not found
     drawDistribution();
 }
 
@@ -1029,7 +1307,8 @@ function drawDistribution() {
     const yearTotals = {}; 
 
     yearWorkouts.forEach(w => {
-        const mIndex = new Date(w.date).getMonth();
+        const d = new Date(w.date + 'T00:00:00'); // Add time to avoid timezone issues
+        const mIndex = d.getMonth();
         const type = w.type;
         monthData[mIndex].total++;
         monthData[mIndex].types[type] = (monthData[mIndex].types[type] || 0) + 1;
@@ -1051,7 +1330,7 @@ function drawDistribution() {
     const maxMonthly = Math.max(...monthData.map(m => m.total), 1);
     
     distCtx.beginPath();
-    distCtx.strokeStyle = 'rgba(128,128,128,0.2)';
+    distCtx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--border-color'); // Use CSS variable
     distCtx.moveTo(pad.left, pad.top);
     distCtx.lineTo(pad.left, 320 - pad.bottom);
     distCtx.stroke();
@@ -1061,7 +1340,7 @@ function drawDistribution() {
         const barY = y + (rowH * 0.2);
         const barH = rowH * 0.6;
         
-        distCtx.fillStyle = '#8e8e93';
+        distCtx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text-secondary'); // Use CSS variable
         distCtx.font = '11px -apple-system';
         distCtx.textAlign = 'right';
         distCtx.textBaseline = 'middle';
@@ -1078,14 +1357,15 @@ function drawDistribution() {
             distCtx.fillStyle = color;
             distCtx.fillRect(currentX, barY, width, barH);
             
-            distCtx.fillStyle = '#fff'; 
-            distCtx.fillRect(currentX + width - 1, barY, 1, barH);
+            // Add a subtle separator between stacked bars
+            // distCtx.fillStyle = 'rgba(0,0,0,0.1)'; 
+            // distCtx.fillRect(currentX + width - 1, barY, 1, barH);
 
             currentX += width;
         });
 
         if(monthData[i].total > 0) {
-            distCtx.fillStyle = '#8e8e93';
+            distCtx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text-secondary'); // Use CSS variable
             distCtx.textAlign = 'left';
             distCtx.fillText(monthData[i].total, currentX + 5, barY + barH/2);
         }
@@ -1098,7 +1378,7 @@ function drawDistribution() {
     const totalYearCount = yearWorkouts.length;
 
     if (totalYearCount === 0) {
-        legendEl.innerHTML = '<div style="color:var(--text-secondary); width:100%; text-align:center;">No data for selected year</div>';
+        legendEl.innerHTML = `<div style="color:var(--text-secondary); width:100%; text-align:center; padding: 20px 0;">No data for ${year}</div>`;
         return;
     }
 
@@ -1146,13 +1426,13 @@ function updateDashboard() {
     let speedCount = 0;
 
     filtered.forEach(w => {
-        const d = new Date(w.date);
+        const d = new Date(w.date + 'T00:00:00'); // Add time to avoid timezone issues
         const monthKey = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
         
         if(!byMonth[monthKey]) byMonth[monthKey] = { count:0, dur:0, dist:0, speedAcc:0, speedN:0, sets:0, weightAcc:0, weightN:0 };
         
         const dist = getDetail(w, 'Distance'); 
-        const speed = getDetail(w, 'Speed'); 
+        const speed = getDetail(w, 'Avg Speed'); // Ensure correct label for speed
         const sets = getDetail(w, 'Sets');
         const weight = getDetail(w, 'Weight');
         
@@ -1235,7 +1515,13 @@ function drawSpecificChart(dataObj, type) {
     ctx.clearRect(0,0, rect.width, rect.height);
 
     const keys = Object.keys(dataObj).sort().slice(-6); 
-    if(!keys.length) return;
+    if(!keys.length) {
+        ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text-secondary');
+        ctx.font = '14px -apple-system';
+        ctx.textAlign = 'center';
+        ctx.fillText('No data for this activity type.', rect.width / 2, rect.height / 2);
+        return;
+    }
 
     const width = rect.width;
     const height = rect.height;
@@ -1246,20 +1532,20 @@ function drawSpecificChart(dataObj, type) {
 
     if(['Running','Cycling','Rowing'].includes(type)) {
         getValue = (k) => dataObj[k].dist;
-        color = '#FF9500';
+        color = workoutColors['Running']; // Use defined color
     } else if (type === 'Weights' || type === 'Strength') {
         getValue = (k) => dataObj[k].sets;
-        color = '#AF52DE';
+        color = workoutColors['Weights']; // Use defined color
     } else {
         getValue = (k) => dataObj[k].dur;
-        color = '#34C759';
+        color = workoutColors['Yoga']; // Use defined color
     }
 
     const values = keys.map(k => getValue(k));
     const maxVal = Math.max(...values, 1) * 1.2;
 
     ctx.beginPath();
-    ctx.strokeStyle = 'rgba(128,128,128,0.2)';
+    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--border-color'); // Use CSS variable
     ctx.moveTo(pad.left, pad.top);
     ctx.lineTo(pad.left, height-pad.bottom);
     ctx.lineTo(width, height-pad.bottom);
@@ -1276,17 +1562,17 @@ function drawSpecificChart(dataObj, type) {
 
         const grd = ctx.createLinearGradient(0, y, 0, height-pad.bottom);
         grd.addColorStop(0, color);
-        grd.addColorStop(1, color+'44');
+        grd.addColorStop(1, color + '44'); // Add transparency for the bottom part
         ctx.fillStyle = grd;
         ctx.fillRect(x, y, barW, barH);
 
-        ctx.fillStyle = '#1d1d1f';
-        ctx.font = 'bold 10px sans-serif';
+        ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text-main'); // Use CSS variable for text
+        ctx.font = 'bold 10px -apple-system';
         ctx.textAlign = 'center';
         if(val > 0) ctx.fillText(Math.round(val), x + barW/2, y - 5);
 
-        ctx.fillStyle = '#8e8e93';
-        ctx.font = '10px sans-serif';
+        ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text-secondary'); // Use CSS variable for text
+        ctx.font = '10px -apple-system';
         ctx.fillText(k.split('-')[1], x + barW/2, height - pad.bottom + 12);
     });
 }
@@ -1365,6 +1651,8 @@ function calcPace() {
     if(d > 0 && t > 0) {
         const pace = t / d;
         runPaceInput.value = pace.toFixed(2);
+    } else {
+        runPaceInput.value = ''; // Clear pace if inputs are invalid
     }
 }
 
@@ -1389,7 +1677,7 @@ function addPrepStep() {
     const val = parseFloat(document.getElementById('step-val').value) || 0;
     const intensity = document.getElementById('step-intensity').value;
 
-    const phaseLabels = { 'warmup': 'Warm Up', 'work': 'Workout / Interval', 'rest': 'Rest', 'cooldown': 'Cool Down' };
+    const phaseLabels = { 'warmup': 'Warm Up', 'work': 'Active Interval / Run', 'rest': 'Recovery / Rest', 'cooldown': 'Cool Down' };
     
     prepSteps.push({
         phase: phase.value,
@@ -1461,7 +1749,7 @@ function renderPrepList() {
 
         li.innerHTML = `
             <div class="step-info">
-                <span class="step-tag">${step.phase}</span>
+                <span class="step-tag">${step.phase.toUpperCase()}</span>
                 <span class="step-title">${step.title}</span>
                 <span class="step-detail">
                     ${detailText} ${step.intensity ? '• ' + step.intensity : ''}
@@ -1473,7 +1761,7 @@ function renderPrepList() {
     });
 
     if(prepSteps.length === 0) {
-        list.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-secondary); border: 2px dashed var(--border-color); border-radius:12px;">Start adding steps to build your workout</div>`;
+        list.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-secondary); border: 2px dashed var(--border-color); border-radius:var(--radius-md);">Start adding steps to build your workout</div>`;
     }
 
     document.getElementById('prep-total-duration').textContent = Math.round(totalTime);
