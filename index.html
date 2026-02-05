@@ -178,9 +178,10 @@
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            gap: 8px;
+            justify-content: center;
+            gap: 10px;
             transition: background 0.2s ease, border-color 0.2s ease;
             -webkit-appearance: none;
             -moz-appearance: none;
@@ -580,6 +581,76 @@
             flex-wrap: wrap;
             justify-content: flex-end;
         }
+        /* --- PREP TRANSPORT CONTROLS --- */
+.prep-transport{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    flex-wrap:wrap;
+}
+
+.btn-full{
+    width: 100%;
+}
+
+/* Transport buttons */
+.btn-transport{
+    background: rgba(142, 142, 147, 0.18);
+    color: var(--text-secondary);
+    border: 1px solid rgba(142, 142, 147, 0.35);
+    padding: 12px 14px;
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    -webkit-appearance:none;
+    appearance:none;
+}
+
+.btn-transport:hover{
+    background: rgba(142, 142, 147, 0.26);
+    border-color: rgba(142, 142, 147, 0.55);
+    color: var(--text-main);
+}
+
+.btn-transport:active{
+    background: rgba(142, 142, 147, 0.32);
+}
+.btn-transport-full{
+    width: 100%;
+    margin-bottom: 12px;
+}
+/* Hidden by default; shown only when playing */
+.prep-active-controls{
+    display: none;
+    width: 100%;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.prep-active-controls.active{
+    display: flex;
+}
+
+/* Make the three control buttons share the row nicely */
+.prep-active-controls .btn-transport{
+    flex: 1;
+}
+
+.prep-clear{
+    margin-top: 16px; /* keep clear at bottom */
+}
+
+
+
+
+
+
         @media (max-width: 768px) {
             .header-actions {
                 width: 100%;
@@ -1048,15 +1119,33 @@
                     </div>
 
                     <div class="add-panel" style="margin-top:20px; border-style:solid; background:var(--card-bg);">
-                         <div class="add-title">Actions</div>
-                         <div class="prep-actions">
-                             <button class="btn-secondary" onclick="window.print()">
-                                <i class="fa-solid fa-print"></i> Print / Save PDF
-                             </button>
-                             <button class="btn-secondary btn-danger-text" onclick="resetPrep()">
-                                Clear All
-                             </button>
-                         </div>
+                        <div class="add-title">Actions</div>
+
+                        <!-- Full-width Play/Pause -->
+                        <button id="prepPlayBtn" class="btn-transport btn-transport-full" type="button" onclick="togglePrepPlay()">
+                            <i class="fa-solid fa-play"></i>
+                            <span>Play</span>
+                        </button>
+
+                        <!-- Hidden until Play is active -->
+                        <div id="prepActiveControls" class="prep-active-controls">
+                            <button class="btn-transport" type="button" onclick="prepStep(-1)" aria-label="Previous step">
+                                <i class="fa-solid fa-forward-step" style="transform: scaleX(-1);"></i>
+                            </button>
+
+                            <button class="btn-transport" type="button" onclick="stopPrep()" aria-label="Stop">
+                                <i class="fa-solid fa-circle-stop"></i>
+                            </button>
+
+                            <button class="btn-transport" type="button" onclick="prepStep(1)" aria-label="Next step">
+                                <i class="fa-solid fa-forward-step"></i>
+                            </button>
+                        </div>
+
+                        <!-- Full-width Clear All at bottom -->
+                        <button class="btn-secondary btn-danger-text btn-full" type="button" onclick="resetPrep()">
+                            Clear All
+                        </button>
                     </div>
                 </div>
             </div>
@@ -1643,6 +1732,38 @@ function handleImportFile(event) {
 
 // ======================= WORKOUT PREP LOGIC =======================
 let prepSteps = [];
+let prepIsPlaying = false;
+
+function togglePrepPlay() {
+    prepIsPlaying = !prepIsPlaying;
+
+    const playBtn = document.getElementById('prepPlayBtn');
+    const activeControls = document.getElementById('prepActiveControls');
+
+    if (prepIsPlaying) {
+        playBtn.innerHTML = `<i class="fa-solid fa-circle-pause"></i><span>Pause</span>`;
+        activeControls.classList.add('active');
+    } else {
+        playBtn.innerHTML = `<i class="fa-solid fa-play"></i><span>Play</span>`;
+        activeControls.classList.remove('active');
+    }
+}
+
+function stopPrep() {
+    prepIsPlaying = false;
+
+    document.getElementById('prepPlayBtn').innerHTML =
+        `<i class="fa-solid fa-play"></i><span>Play</span>`;
+
+    document.getElementById('prepActiveControls').classList.remove('active');
+}
+
+function prepStep(direction) {
+    if (!prepIsPlaying) return;
+    if (!prepSteps.length) return;
+    console.log('Step', direction);
+}
+
 
 function calcPace() {
     const d = parseFloat(runDistInput.value);
