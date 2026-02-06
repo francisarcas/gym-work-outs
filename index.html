@@ -483,13 +483,41 @@
         /* ==================== CHART ==================== */
         .chart-container {
             position: relative;
+            width: 100%;
             height: 300px;
             margin: 20px 0;
         }
 
-        canvas {
-            max-width: 100%;
+        #activity-chart {
+            width: 100%;
+            height: 100%;
             display: block;
+        }
+
+        .chart-legend {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 24px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--divider);
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0;
         }
 
         /* ==================== PREP BUILDER ==================== */
@@ -708,6 +736,10 @@
             .form-select {
                 width: 100% !important;
             }
+
+            .chart-legend {
+                gap: 12px;
+            }
         }
 
         /* ==================== UTILITIES ==================== */
@@ -848,6 +880,12 @@
                 </div>
                 <div class="chart-container">
                     <canvas id="activity-chart"></canvas>
+                </div>
+                <div class="chart-legend">
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background: rgba(10, 132, 255, 0.8);"></div>
+                        <span>Workout Duration (minutes)</span>
+                    </div>
                 </div>
             </div>
 
@@ -1003,8 +1041,7 @@
                 this.setupEventListeners();
                 this.setDefaultDate();
                 this.renderWorkoutList();
-                this.updateDynamicFields(); // Initialize dynamic fields
-                // Don't call updateAnalytics on init since we're not on that view
+                this.updateDynamicFields();
             },
 
             loadData() {
@@ -1057,14 +1094,6 @@
                     this.updatePrepUI();
                 });
 
-                // Real-time preview
-                ['step-value', 'step-intensity-pace', 'step-intensity-speed', 'step-intensity-split'].forEach(id => {
-                    const el = document.getElementById(id);
-                    if (el) {
-                        el.addEventListener('input', () => this.updateStepPreview());
-                    }
-                });
-
                 // Import file
                 document.getElementById('import-file').addEventListener('change', (e) => {
                     this.handleImport(e);
@@ -1092,10 +1121,9 @@
 
                 // Update view-specific data
                 if (viewName === 'analytics') {
-                    // Small delay to ensure canvas is rendered
                     setTimeout(() => {
                         this.updateAnalytics();
-                    }, 50);
+                    }, 100);
                 }
             },
 
@@ -1115,7 +1143,6 @@
                 this.saveData();
                 this.renderWorkoutList();
                 
-                // Update analytics if we're on that view
                 if (document.getElementById('view-analytics').classList.contains('active')) {
                     this.updateAnalytics();
                 }
@@ -1133,7 +1160,6 @@
                 this.saveData();
                 this.renderWorkoutList();
                 
-                // Update analytics if we're on that view
                 if (document.getElementById('view-analytics').classList.contains('active')) {
                     this.updateAnalytics();
                 }
@@ -1534,17 +1560,21 @@
                     }
                 });
 
-                // Clear and draw
-                const dpr = window.devicePixelRatio || 1;
-                const rect = canvas.getBoundingClientRect();
-                canvas.width = rect.width * dpr;
-                canvas.height = 300 * dpr;
-                ctx.scale(dpr, dpr);
-                ctx.clearRect(0, 0, rect.width, 300);
+                // Get container dimensions
+                const container = canvas.parentElement;
+                const containerWidth = container.clientWidth;
+                const containerHeight = container.clientHeight;
+
+                // Set canvas size to match container
+                canvas.width = containerWidth;
+                canvas.height = containerHeight;
+
+                // Clear canvas
+                ctx.clearRect(0, 0, containerWidth, containerHeight);
 
                 const padding = { top: 20, right: 20, bottom: 40, left: 50 };
-                const chartWidth = rect.width - padding.left - padding.right;
-                const chartHeight = 300 - padding.top - padding.bottom;
+                const chartWidth = containerWidth - padding.left - padding.right;
+                const chartHeight = containerHeight - padding.top - padding.bottom;
 
                 const maxValue = Math.max(...data, 1) * 1.2;
                 const barWidth = chartWidth / days;
@@ -1590,7 +1620,7 @@
                     ctx.fillStyle = 'rgba(235, 235, 245, 0.6)';
                     ctx.font = '14px -apple-system';
                     ctx.textAlign = 'center';
-                    ctx.fillText('No workout data for this period', rect.width / 2, 150);
+                    ctx.fillText('No workout data for this period', containerWidth / 2, containerHeight / 2);
                 }
             },
 
@@ -1868,17 +1898,14 @@
             startWorkout() {
                 this.player.isPlaying = true;
                 
-                // Initialize first step if needed
                 if (this.player.timeRemaining === 0) {
                     this.initStep(0);
                 }
 
-                // Update UI
                 document.getElementById('play-icon').className = 'fas fa-pause';
                 document.getElementById('play-text').textContent = 'Pause';
                 document.getElementById('player-controls').classList.remove('hidden');
 
-                // Start timer
                 this.player.interval = setInterval(() => this.tick(), 1000);
             },
 
@@ -1903,7 +1930,6 @@
                 document.getElementById('player-status').textContent = 'Ready to start';
                 document.getElementById('play-btn').style.setProperty('--progress', '0%');
 
-                // Remove active class
                 document.querySelectorAll('.step-item').forEach(el => {
                     el.classList.remove('active');
                 });
@@ -1920,12 +1946,10 @@
                 this.player.timeRemaining = step.duration;
                 this.player.totalTime = step.duration;
 
-                // Highlight step
                 document.querySelectorAll('.step-item').forEach((el, i) => {
                     el.classList.toggle('active', i === index);
                 });
 
-                // Scroll to step
                 const stepEl = document.getElementById(`step-${index}`);
                 if (stepEl) {
                     stepEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -1939,7 +1963,6 @@
                     this.player.timeRemaining--;
                     this.updatePlayerUI();
                 } else {
-                    // Move to next step
                     this.initStep(this.player.currentStep + 1);
                 }
             },
@@ -1962,7 +1985,6 @@
                     ${timeStr} remaining
                 `;
 
-                // Update progress bar
                 const progress = ((this.player.totalTime - this.player.timeRemaining) / this.player.totalTime) * 100;
                 document.getElementById('play-btn').style.setProperty('--progress', `${progress}%`);
             },
