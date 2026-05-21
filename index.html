@@ -1199,12 +1199,23 @@ const app = {
     if (location.protocol!=='file:') {
       try {
         const url=`https://exercisedb.dev/api/v1/exercises?name=${encodeURIComponent(q)}&limit=8`;
-        const res=await fetch(url, {signal:AbortSignal.timeout(4000)});
-        if (!res.ok) throw new Error();
+        const res=await fetch(url, {signal:AbortSignal.timeout(5000)});
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const json=await res.json();
-        const list=Array.isArray(json)?json:(json.exercises||json.data?.exercises||[]);
+
+        // Handle all known response shapes
+        let list=[];
+        if (Array.isArray(json))              list=json;
+        else if (json.data?.exercises)         list=json.data.exercises;
+        else if (Array.isArray(json.exercises))list=json.exercises;
+        else if (Array.isArray(json.data))     list=json.data;
+
+        console.log('[ExerciseDB] Received', list.length, 'results. Sample gifUrl:', list[0]?.gifUrl||'(none)');
         if (list.length) this.showExDropdown(list, q, true);
-      } catch { /* static results already displayed */ }
+      } catch(err) {
+        console.warn('[ExerciseDB] API unavailable:', err.message);
+        /* static results already displayed */
+      }
     }
 
     if (spinner) spinner.style.display='none';
@@ -1234,12 +1245,18 @@ const app = {
     list.forEach(ex=>{
       const item=document.createElement('div'); item.className='ex-item';
 
-      // Media: show GIF from API, or dumbbell icon placeholder for static
-      const mediaEl=ex.gifUrl
-        ? `<img class="ex-gif" src="${this.esc(ex.gifUrl)}" alt="" loading="lazy" onerror="this.style.display='none'">`
-        : `<div class="ex-gif" style="display:flex;align-items:center;justify-content:center;background:var(--bg3);flex-shrink:0;">
-             <i class="fas fa-dumbbell" style="color:var(--t3);font-size:18px;" aria-hidden="true"></i>
-           </div>`;
+      // Always render the placeholder container; overlay the GIF on top when available.
+      // If the GIF fails to load (rate-limit / CDN block) the placeholder icon stays visible.
+      const mediaEl=`
+        <div class="ex-gif" style="position:relative;flex-shrink:0;background:var(--bg3);
+             display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:var(--r-s);">
+          <i class="fas fa-dumbbell" style="color:var(--t3);font-size:18px;" aria-hidden="true"></i>
+          ${ex.gifUrl
+            ? `<img src="${this.esc(ex.gifUrl)}" alt="${this.esc(ex.name||'')}" loading="lazy"
+                 style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:var(--r-s);"
+                 onerror="this.remove()">`
+            : ''}
+        </div>`;
 
       item.innerHTML=`
         ${mediaEl}
@@ -1777,7 +1794,7 @@ const app = {
           <i class="fas fa-${this.typeIcon(type)}" aria-hidden="true"></i> ${this.esc(type)}
         </span></td>
         <td>${d.count}</td>
-        <td>${d.total} min <span style="color:var(--t3);font-size:12px">(${hrs}h)</span></td>
+        <td>${parseFloat(d.total.toFixed(2))} min <span style="color:var(--t3);font-size:12px">(${hrs}h)</span></td>
         <td>${avg} min</td>`;
       tbody.appendChild(tr);
     });
