@@ -1,0 +1,114 @@
+[
+  {
+    "id": 1768588927721,
+    "date": "2026-02-06",
+    "type": "Weights",
+    "duration": 21,
+    "notes": "",
+    "details": [
+      { "label": "Exercise", "value": "Deadlift" },
+      { "label": "Sets",     "value": "10" },
+      { "label": "Reps",     "value": "12" },
+      { "label": "Weight",   "value": "12" }
+    ]
+  },
+  {
+    "id": 1769526629610,
+    "date": "2026-01-27",
+    "type": "Running",
+    "duration": 30,
+    "notes": "",
+    "details": [
+      { "label": "Distance", "value": "5" },
+      { "label": "Pace",     "value": "6.00" }
+    ]
+  },
+  {
+    "id": 1768588990101,
+    "date": "2026-01-23",
+    "type": "HIIT",
+    "duration": 45,
+    "notes": "",
+    "details": []
+  },
+  {
+    "id": 1768585962128,
+    "date": "2026-01-16",
+    "type": "Running",
+    "duration": 60,
+    "notes": "",
+    "details": [
+      { "label": "Distance", "value": "10" },
+      { "label": "Speed",    "value": "6" }
+    ]
+  },
+  {
+    "id": 1768585918856,
+    "date": "2026-01-16",
+    "type": "Rowing",
+    "duration": 24,
+    "notes": "",
+    "details": [
+      { "label": "Distance",    "value": "4" },
+      { "label": "Stroke Rate", "value": "9" }
+    ]
+  },
+  {
+    "id": 1768584406070,
+    "date": "2026-01-16",
+    "type": "Weights",
+    "duration": 22,
+    "notes": "",
+    "details": []
+  },
+  {
+    "id": 1768580374085,
+    "date": "2026-01-16",
+    "type": "Swimming",
+    "duration": 34,
+    "notes": "",
+    "details": []
+  },
+  {
+    "id": 1768580356128,
+    "date": "2026-01-16",
+    "type": "Running",
+    "duration": 30,
+    "notes": "lovely",
+    "details": []
+  },
+  {
+    "id": 1768586071772,
+    "date": "2026-01-15",
+    "type": "Running",
+    "duration": 45,
+    "notes": "",
+    "details": [
+      { "label": "Distance", "value": "7" },
+      { "label": "Speed",    "value": "6" }
+    ]
+  },
+  {
+    "id": 1768586636348,
+    "date": "2026-01-14",
+    "type": "Weights",
+    "duration": 30,
+    "notes": "I felt like Hulk",
+    "details": [
+      { "label": "Exercise", "value": "Bench Press" },
+      { "label": "Sets",     "value": "20" },
+      { "label": "Reps",     "value": "15" },
+      { "label": "Weight",   "value": "12" }
+    ]
+  },
+  {
+    "id": 1768606459847,
+    "date": "2026-01-02",
+    "type": "Running",
+    "duration": 34,
+    "notes": "",
+    "details": [
+      { "label": "Speed", "value": "5.5" }
+    ]
+  }
+]
