@@ -719,6 +719,113 @@
 
 <script>
 /* ══════════════════════════════════════════════════════════════
+   STATIC EXERCISE LIBRARY — works offline + file:// protocol
+   Format: { name, bodyPart, equipment, target }
+══════════════════════════════════════════════════════════════ */
+const EXERCISE_DB = [
+  /* ── CHEST ─────────────────────────────────────────────── */
+  {name:"barbell bench press",        bodyPart:"chest",       equipment:"barbell",     target:"pectorals"},
+  {name:"dumbbell bench press",       bodyPart:"chest",       equipment:"dumbbell",    target:"pectorals"},
+  {name:"incline bench press",        bodyPart:"chest",       equipment:"barbell",     target:"pectorals"},
+  {name:"decline bench press",        bodyPart:"chest",       equipment:"barbell",     target:"pectorals"},
+  {name:"dumbbell fly",               bodyPart:"chest",       equipment:"dumbbell",    target:"pectorals"},
+  {name:"cable chest fly",            bodyPart:"chest",       equipment:"cable",       target:"pectorals"},
+  {name:"push-up",                    bodyPart:"chest",       equipment:"body weight", target:"pectorals"},
+  {name:"chest dip",                  bodyPart:"chest",       equipment:"body weight", target:"pectorals"},
+  {name:"spoto press",                bodyPart:"chest",       equipment:"barbell",     target:"pectorals"},
+  {name:"floor press",                bodyPart:"chest",       equipment:"barbell",     target:"pectorals"},
+  /* ── BACK ───────────────────────────────────────────────── */
+  {name:"conventional deadlift",      bodyPart:"back",        equipment:"barbell",     target:"spine"},
+  {name:"sumo deadlift",              bodyPart:"back",        equipment:"barbell",     target:"glutes"},
+  {name:"deficit deadlift",           bodyPart:"back",        equipment:"barbell",     target:"spine"},
+  {name:"rack pull",                  bodyPart:"back",        equipment:"barbell",     target:"upper back"},
+  {name:"barbell bent-over row",      bodyPart:"back",        equipment:"barbell",     target:"upper back"},
+  {name:"pendlay row",                bodyPart:"back",        equipment:"barbell",     target:"upper back"},
+  {name:"t-bar row",                  bodyPart:"back",        equipment:"barbell",     target:"upper back"},
+  {name:"dumbbell row",               bodyPart:"back",        equipment:"dumbbell",    target:"lats"},
+  {name:"pull-up",                    bodyPart:"back",        equipment:"body weight", target:"lats"},
+  {name:"chin-up",                    bodyPart:"back",        equipment:"body weight", target:"biceps"},
+  {name:"weighted pull-up",           bodyPart:"back",        equipment:"body weight", target:"lats"},
+  {name:"lat pulldown",               bodyPart:"back",        equipment:"cable",       target:"lats"},
+  {name:"seated cable row",           bodyPart:"back",        equipment:"cable",       target:"upper back"},
+  {name:"face pull",                  bodyPart:"shoulders",   equipment:"cable",       target:"delts"},
+  {name:"barbell shrug",              bodyPart:"back",        equipment:"barbell",     target:"traps"},
+  /* ── LEGS ───────────────────────────────────────────────── */
+  {name:"back squat",                 bodyPart:"upper legs",  equipment:"barbell",     target:"quads"},
+  {name:"front squat",                bodyPart:"upper legs",  equipment:"barbell",     target:"quads"},
+  {name:"paused back squat",          bodyPart:"upper legs",  equipment:"barbell",     target:"quads"},
+  {name:"box squat",                  bodyPart:"upper legs",  equipment:"barbell",     target:"quads"},
+  {name:"safety bar squat",           bodyPart:"upper legs",  equipment:"barbell",     target:"quads"},
+  {name:"leg press",                  bodyPart:"upper legs",  equipment:"machine",     target:"quads"},
+  {name:"hack squat",                 bodyPart:"upper legs",  equipment:"machine",     target:"quads"},
+  {name:"romanian deadlift",          bodyPart:"upper legs",  equipment:"barbell",     target:"hamstrings"},
+  {name:"leg curl",                   bodyPart:"upper legs",  equipment:"machine",     target:"hamstrings"},
+  {name:"leg extension",              bodyPart:"upper legs",  equipment:"machine",     target:"quads"},
+  {name:"walking lunge",              bodyPart:"upper legs",  equipment:"dumbbell",    target:"quads"},
+  {name:"goblet squat",               bodyPart:"upper legs",  equipment:"kettlebell",  target:"quads"},
+  {name:"hip thrust",                 bodyPart:"upper legs",  equipment:"barbell",     target:"glutes"},
+  {name:"calf raise",                 bodyPart:"lower legs",  equipment:"machine",     target:"calves"},
+  {name:"seated calf raise",          bodyPart:"lower legs",  equipment:"machine",     target:"calves"},
+  {name:"nordic curl",                bodyPart:"upper legs",  equipment:"body weight", target:"hamstrings"},
+  /* ── SHOULDERS ──────────────────────────────────────────── */
+  {name:"overhead press",             bodyPart:"shoulders",   equipment:"barbell",     target:"delts"},
+  {name:"push press",                 bodyPart:"shoulders",   equipment:"barbell",     target:"delts"},
+  {name:"seated overhead press",      bodyPart:"shoulders",   equipment:"barbell",     target:"delts"},
+  {name:"dumbbell shoulder press",    bodyPart:"shoulders",   equipment:"dumbbell",    target:"delts"},
+  {name:"arnold press",               bodyPart:"shoulders",   equipment:"dumbbell",    target:"delts"},
+  {name:"lateral raise",              bodyPart:"shoulders",   equipment:"dumbbell",    target:"delts"},
+  {name:"cable lateral raise",        bodyPart:"shoulders",   equipment:"cable",       target:"delts"},
+  {name:"front raise",                bodyPart:"shoulders",   equipment:"dumbbell",    target:"delts"},
+  {name:"rear delt fly",              bodyPart:"shoulders",   equipment:"dumbbell",    target:"delts"},
+  /* ── ARMS ───────────────────────────────────────────────── */
+  {name:"barbell bicep curl",         bodyPart:"upper arms",  equipment:"barbell",     target:"biceps"},
+  {name:"dumbbell bicep curl",        bodyPart:"upper arms",  equipment:"dumbbell",    target:"biceps"},
+  {name:"hammer curl",                bodyPart:"upper arms",  equipment:"dumbbell",    target:"brachialis"},
+  {name:"preacher curl",              bodyPart:"upper arms",  equipment:"barbell",     target:"biceps"},
+  {name:"concentration curl",         bodyPart:"upper arms",  equipment:"dumbbell",    target:"biceps"},
+  {name:"cable curl",                 bodyPart:"upper arms",  equipment:"cable",       target:"biceps"},
+  {name:"close-grip bench press",     bodyPart:"upper arms",  equipment:"barbell",     target:"triceps"},
+  {name:"skull crusher",              bodyPart:"upper arms",  equipment:"barbell",     target:"triceps"},
+  {name:"tricep pushdown",            bodyPart:"upper arms",  equipment:"cable",       target:"triceps"},
+  {name:"overhead tricep extension",  bodyPart:"upper arms",  equipment:"dumbbell",    target:"triceps"},
+  {name:"tricep dip",                 bodyPart:"upper arms",  equipment:"body weight", target:"triceps"},
+  {name:"diamond push-up",            bodyPart:"upper arms",  equipment:"body weight", target:"triceps"},
+  /* ── CORE ───────────────────────────────────────────────── */
+  {name:"plank",                      bodyPart:"waist",       equipment:"body weight", target:"abs"},
+  {name:"weighted plank",             bodyPart:"waist",       equipment:"body weight", target:"abs"},
+  {name:"ab wheel rollout",           bodyPart:"waist",       equipment:"wheel roller",target:"abs"},
+  {name:"crunch",                     bodyPart:"waist",       equipment:"body weight", target:"abs"},
+  {name:"bicycle crunch",             bodyPart:"waist",       equipment:"body weight", target:"abs"},
+  {name:"russian twist",              bodyPart:"waist",       equipment:"body weight", target:"abs"},
+  {name:"hanging leg raise",          bodyPart:"waist",       equipment:"body weight", target:"abs"},
+  {name:"cable crunch",               bodyPart:"waist",       equipment:"cable",       target:"abs"},
+  {name:"dead bug",                   bodyPart:"waist",       equipment:"body weight", target:"abs"},
+  {name:"pallof press",               bodyPart:"waist",       equipment:"cable",       target:"abs"},
+  {name:"farmer's carry",             bodyPart:"waist",       equipment:"dumbbell",    target:"abs"},
+  {name:"sit-up",                     bodyPart:"waist",       equipment:"body weight", target:"abs"},
+  {name:"dragon flag",                bodyPart:"waist",       equipment:"body weight", target:"abs"},
+  {name:"v-up",                       bodyPart:"waist",       equipment:"body weight", target:"abs"},
+  /* ── FULL BODY / POWER ──────────────────────────────────── */
+  {name:"barbell clean",              bodyPart:"upper legs",  equipment:"barbell",     target:"quads"},
+  {name:"power clean",                bodyPart:"upper legs",  equipment:"barbell",     target:"quads"},
+  {name:"hang clean",                 bodyPart:"upper legs",  equipment:"barbell",     target:"quads"},
+  {name:"kettlebell swing",           bodyPart:"upper legs",  equipment:"kettlebell",  target:"glutes"},
+  {name:"turkish get-up",             bodyPart:"full body",   equipment:"kettlebell",  target:"core"},
+  {name:"burpee",                     bodyPart:"full body",   equipment:"body weight", target:"cardiovascular system"},
+  {name:"box jump",                   bodyPart:"upper legs",  equipment:"body weight", target:"quads"},
+  {name:"mountain climber",           bodyPart:"waist",       equipment:"body weight", target:"abs"},
+  {name:"battle ropes",               bodyPart:"upper arms",  equipment:"rope",        target:"biceps"},
+  {name:"sled push",                  bodyPart:"upper legs",  equipment:"sled",        target:"quads"},
+  {name:"tire flip",                  bodyPart:"full body",   equipment:"tire",        target:"glutes"},
+  /* ── STRETCHING / MOBILITY ──────────────────────────────── */
+  {name:"hip flexor stretch",         bodyPart:"upper legs",  equipment:"body weight", target:"hip flexors"},
+  {name:"pigeon pose",                bodyPart:"upper legs",  equipment:"body weight", target:"glutes"},
+  {name:"cat-cow stretch",            bodyPart:"back",        equipment:"body weight", target:"spine"},
+  {name:"thoracic rotation",          bodyPart:"back",        equipment:"body weight", target:"spine"},
+  {name:"ankle mobility drill",       bodyPart:"lower legs",  equipment:"body weight", target:"calves"}
+];
+
+/* ══════════════════════════════════════════════════════════════
    APP
 ══════════════════════════════════════════════════════════════ */
 const app = {
@@ -1079,68 +1186,98 @@ const app = {
     }, {once:false, capture:true});
   },
 
+  /* Search static library first (always works), then try live API over HTTP */
   async searchExercises(q) {
     const spinner=document.getElementById('ex-spinner');
     if (spinner) spinner.style.display='block';
-    try {
-      const url=`https://exercisedb.dev/api/v1/exercises?name=${encodeURIComponent(q)}&limit=8`;
-      const res=await fetch(url);
-      if (!res.ok) throw new Error('API error');
-      const json=await res.json();
-      // API returns { exercises: [...] } or array directly
-      const list=Array.isArray(json) ? json : (json.exercises||json.data?.exercises||[]);
-      this.showExDropdown(list, q);
-    } catch {
-      this.hideExDropdown(); // silent fallback — user can still type freely
-    } finally {
-      if (spinner) spinner.style.display='none';
+
+    // ── Static search (works on file://, no CORS, instant) ──────────────
+    const staticList=this.searchExercisesStatic(q);
+    this.showExDropdown(staticList, q, false);
+
+    // ── Live API — only when served over HTTP/HTTPS ──────────────────────
+    if (location.protocol!=='file:') {
+      try {
+        const url=`https://exercisedb.dev/api/v1/exercises?name=${encodeURIComponent(q)}&limit=8`;
+        const res=await fetch(url, {signal:AbortSignal.timeout(4000)});
+        if (!res.ok) throw new Error();
+        const json=await res.json();
+        const list=Array.isArray(json)?json:(json.exercises||json.data?.exercises||[]);
+        if (list.length) this.showExDropdown(list, q, true);
+      } catch { /* static results already displayed */ }
     }
+
+    if (spinner) spinner.style.display='none';
   },
 
-  showExDropdown(list, q) {
+  /* Search the bundled EXERCISE_DB by name, target, bodyPart or equipment */
+  searchExercisesStatic(q) {
+    const sq=q.toLowerCase().trim();
+    if (!sq) return [];
+    return EXERCISE_DB.filter(ex=>
+      ex.name.includes(sq)||ex.target.includes(sq)||
+      ex.bodyPart.includes(sq)||ex.equipment.includes(sq)
+    ).slice(0,8);
+  },
+
+  showExDropdown(list, q, fromApi=false) {
     const dd=document.getElementById('exercise-dropdown');
     const searchEl=document.getElementById('df-exercise-search');
     if (!dd||!searchEl) return;
     dd.innerHTML='';
-    if (!list.length) { dd.innerHTML='<div style="padding:14px;text-align:center;color:var(--t2);font-size:13px;">No results found</div>'; dd.classList.remove('hidden'); return; }
+
+    if (!list.length) {
+      dd.innerHTML='<div style="padding:14px;text-align:center;color:var(--t2);font-size:13px;"><i class="fas fa-magnifying-glass" style="display:block;margin-bottom:6px;opacity:.4;"></i>No results — try a different keyword</div>';
+      dd.classList.remove('hidden'); return;
+    }
+
     list.forEach(ex=>{
       const item=document.createElement('div'); item.className='ex-item';
+
+      // Media: show GIF from API, or dumbbell icon placeholder for static
+      const mediaEl=ex.gifUrl
+        ? `<img class="ex-gif" src="${this.esc(ex.gifUrl)}" alt="" loading="lazy" onerror="this.style.display='none'">`
+        : `<div class="ex-gif" style="display:flex;align-items:center;justify-content:center;background:var(--bg3);flex-shrink:0;">
+             <i class="fas fa-dumbbell" style="color:var(--t3);font-size:18px;" aria-hidden="true"></i>
+           </div>`;
+
       item.innerHTML=`
-        <img class="ex-gif" src="${ex.gifUrl||''}" alt="" loading="lazy"
-             onerror="this.style.display='none'">
+        ${mediaEl}
         <div class="ex-info">
           <div class="ex-name">${this.esc(ex.name||'')}</div>
           <div class="ex-meta">
             <span class="ex-badge">${this.esc(ex.bodyPart||'')}</span>
-            <span class="ex-badge" style="background:rgba(191,90,242,.15);color:var(--purple)">
-              ${this.esc(ex.target||'')}
-            </span>
+            <span class="ex-badge" style="background:rgba(191,90,242,.15);color:var(--purple)">${this.esc(ex.target||'')}</span>
             <span style="font-size:11px;color:var(--t3)">${this.esc(ex.equipment||'')}</span>
           </div>
         </div>`;
-      item.addEventListener('click', ()=>{
+
+      item.addEventListener('click',()=>{
         searchEl.value=ex.name;
         document.getElementById('df-exercise').value=ex.name;
         this.hideExDropdown();
-        // Store bodyPart as extra info chip if available
-        if (ex.target) {
+        // Show selected-exercise info chips
+        if (ex.target||ex.bodyPart) {
           let chip=document.getElementById('ex-selected-chip');
           if (!chip) {
-            chip=document.createElement('div');
-            chip.id='ex-selected-chip';
+            chip=document.createElement('div'); chip.id='ex-selected-chip';
             chip.style.cssText='display:flex;gap:6px;margin-top:6px;flex-wrap:wrap';
             searchEl.closest('.form-group')?.appendChild(chip);
           }
-          chip.innerHTML=`
-            <span class="ex-badge"><i class="fas fa-bullseye" style="margin-right:3px"></i>${this.esc(ex.target)}</span>
-            <span class="ex-badge" style="background:rgba(90,200,250,.15);color:var(--teal)">${this.esc(ex.bodyPart)}</span>
-            <span class="ex-badge" style="background:rgba(255,159,10,.15);color:var(--orange)">${this.esc(ex.equipment)}</span>`;
+          chip.innerHTML=
+            (ex.target  ? `<span class="ex-badge"><i class="fas fa-bullseye" style="margin-right:3px" aria-hidden="true"></i>${this.esc(ex.target)}</span>` : '')+
+            (ex.bodyPart? `<span class="ex-badge" style="background:rgba(90,200,250,.15);color:var(--teal)">${this.esc(ex.bodyPart)}</span>` : '')+
+            (ex.equipment?`<span class="ex-badge" style="background:rgba(255,159,10,.15);color:var(--orange)">${this.esc(ex.equipment)}</span>` : '');
         }
       });
       dd.appendChild(item);
     });
+
+    // Attribution footer
     const att=document.createElement('div'); att.className='ex-attribution';
-    att.textContent='Powered by ExerciseDB';
+    att.innerHTML=fromApi
+      ? '<i class="fas fa-globe" style="margin-right:5px;opacity:.5;" aria-hidden="true"></i>Powered by ExerciseDB'
+      : '<i class="fas fa-database" style="margin-right:5px;opacity:.5;" aria-hidden="true"></i>Built-in exercise library';
     dd.appendChild(att);
     dd.classList.remove('hidden');
   },
